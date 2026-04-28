@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Upload, Bug, Trophy } from "lucide-react";
+import { ArrowLeft, Upload, Bug, Trophy, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
 
 type Lane = 0 | 1 | 2;
@@ -19,6 +19,9 @@ const BASE_SPEED = 0.012; // z per frame
 
 const BugGame = () => {
   const [face, setFace] = useState<string | null>(null);
+  /** One or more travel photos; index 0 is the background in use (tap thumb to change). */
+  const [sceneImages, setSceneImages] = useState<string[]>([]);
+  const [sceneIdx, setSceneIdx] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
@@ -37,23 +40,69 @@ const BugGame = () => {
   useEffect(() => { laneRef.current = lane; }, [lane]);
   useEffect(() => { playingRef.current = playing; }, [playing]);
 
-  const handleFile = (file: File) => {
+  useEffect(() => {
+    setSceneIdx((i) => {
+      if (sceneImages.length === 0) return 0;
+      return Math.min(i, sceneImages.length - 1);
+    });
+  }, [sceneImages.length]);
+
+  const sceneBg = sceneImages.length ? sceneImages[sceneIdx] ?? sceneImages[0] : null;
+
+  const readImageFile = (file: File, onLoad: (dataUrl: string) => void) => {
     if (!file.type.startsWith("image/")) {
-      toast.error("Please upload an image");
+      toast.error("请上传图片文件");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be under 5MB");
+      toast.error("图片需小于 5MB");
       return;
     }
     const reader = new FileReader();
-    reader.onload = (e) => setFace(e.target?.result as string);
+    reader.onload = (e) => onLoad(e.target?.result as string);
     reader.readAsDataURL(file);
   };
 
+  const handleFaceFile = (file: File) => {
+    readImageFile(file, setFace);
+  };
+
+  const MAX_SCENE = 8;
+
+  const handleSceneFiles = async (files: FileList | null) => {
+    if (!files?.length) return;
+    const added: string[] = [];
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith("image/")) continue;
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("图片需小于 5MB");
+        continue;
+      }
+      try {
+        const url = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        added.push(url);
+      } catch {
+        toast.error("无法读取某张图片");
+      }
+      if (added.length + sceneImages.length >= MAX_SCENE) break;
+    }
+    if (!added.length) return;
+    const merged = [...sceneImages, ...added].slice(0, MAX_SCENE);
+    setSceneImages(merged);
+    setSceneIdx(0);
+    toast.success(`已添加 ${added.length} 张（场景库共 ${merged.length} 张），点下方小图可切换背景`);
+  };
+
+  const pickScene = (index: number) => setSceneIdx(index);
+
   const startGame = () => {
     if (!face) {
-      toast.error("Upload a face first 👹");
+      toast.error("请先上传人脸头像 👹");
       return;
     }
     setScore(0);
@@ -191,39 +240,106 @@ const BugGame = () => {
             <Bug className="h-16 w-16 mx-auto mb-4 text-bug animate-wiggle" />
             <h1 className="text-4xl md:text-5xl font-black mb-3">云栖竹径吃虫子</h1>
             <p className="text-primary-foreground/80">
-              Upload the face of someone you'd love to send through a bamboo forest full of bugs. Run forward, dodge rocks & bamboo, devour every bug.
+              上传<strong className="text-primary-foreground">人脸</strong>作为主角；可选一次选择
+              <strong className="text-primary-foreground">多张旅游照片</strong>
+              作为场景库，点缩略图切换用作跑道背景的实景图。
             </p>
           </div>
 
-          <label className="cursor-pointer group">
-            <div className="w-40 h-40 rounded-full border-4 border-dashed border-primary-foreground/40 group-hover:border-accent transition-colors flex items-center justify-center overflow-hidden bg-background/10 backdrop-blur">
-              {face ? (
-                <img src={face} alt="Victim" className="w-full h-full object-cover" />
-              ) : (
-                <div className="text-center">
-                  <Upload className="h-8 w-8 mx-auto mb-2" />
-                  <span className="text-xs font-semibold">Upload face</span>
+          <div className="flex flex-col sm:flex-row items-center gap-8 w-full max-w-lg justify-center">
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-xs font-semibold text-primary-foreground/70 uppercase tracking-wide">主角</span>
+              <label className="cursor-pointer group">
+                <div className="w-36 h-36 rounded-full border-4 border-dashed border-primary-foreground/40 group-hover:border-accent transition-colors flex items-center justify-center overflow-hidden bg-background/10 backdrop-blur">
+                  {face ? (
+                    <img src={face} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="text-center px-2">
+                      <Upload className="h-8 w-8 mx-auto mb-2" />
+                      <span className="text-xs font-semibold">上传人脸</span>
+                    </div>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => e.target.files?.[0] && handleFaceFile(e.target.files[0])}
+                />
+              </label>
+            </div>
+
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-xs font-semibold text-primary-foreground/70 uppercase tracking-wide">场景（可选）</span>
+              <label className="cursor-pointer group">
+                <div
+                  className={`w-full sm:w-56 h-36 rounded-2xl border-2 border-dashed transition-colors flex items-center justify-center overflow-hidden bg-background/10 backdrop-blur ${
+                    sceneBg ? "border-accent/80" : "border-primary-foreground/30 group-hover:border-accent/60"
+                  }`}
+                >
+                  {sceneBg ? (
+                    <img src={sceneBg} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="text-center px-3">
+                      <ImagePlus className="h-8 w-8 mx-auto mb-2 opacity-90" />
+                      <span className="text-xs font-semibold leading-tight block">上传旅游场景照</span>
+                      <span className="text-[10px] text-primary-foreground/60 mt-1 block">可多选 · 实景作背景</span>
+                    </div>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    void handleSceneFiles(e.target.files);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              {sceneImages.length > 1 && (
+                <div className="flex gap-1.5 flex-wrap justify-center max-w-[14rem] mt-2">
+                  {sceneImages.map((src, i) => (
+                    <button
+                      key={`${i}-${src.slice(0, 20)}`}
+                      type="button"
+                      onClick={() => pickScene(i)}
+                      className={`w-10 h-10 rounded-lg overflow-hidden border-2 shrink-0 ${
+                        i === sceneIdx ? "border-accent" : "border-white/30 opacity-80"
+                      }`}
+                    >
+                      <img src={src} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
                 </div>
               )}
+              {sceneBg && (
+                <button
+                  type="button"
+                  className="text-[11px] text-primary-foreground/70 underline underline-offset-2 hover:text-accent"
+                  onClick={() => {
+                    setSceneImages([]);
+                    setSceneIdx(0);
+                    toast.message("已恢复默认竹林背景");
+                  }}
+                >
+                  改用默认背景
+                </button>
+              )}
             </div>
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
-            />
-          </label>
+          </div>
 
           <Button
             onClick={startGame}
             size="lg"
             className="mt-8 bg-accent hover:bg-accent/90 text-accent-foreground font-bold text-lg px-10 h-14 rounded-full shadow-glow"
           >
-            Start Running →
+            开始跑步 →
           </Button>
 
           <p className="mt-6 text-xs text-primary-foreground/60 text-center">
-            ← → arrow keys or swipe to switch lanes
+            ← → 方向键或左右滑动换道
           </p>
         </div>
       )}
@@ -235,14 +351,28 @@ const BugGame = () => {
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
         >
-          {/* Sky */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[hsl(120_50%_55%)] via-[hsl(130_45%_35%)] to-[hsl(140_50%_18%)]" />
+          {/* Background: travel photo or stylized forest */}
+          {sceneBg ? (
+            <div className="absolute inset-0">
+              <img
+                src={sceneBg}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover object-[center_35%]"
+                draggable={false}
+              />
+              {/* Horizon glow + readability */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/55 pointer-events-none" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center_top,rgba(0,0,0,0.15),transparent_55%)] pointer-events-none" />
+            </div>
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-b from-[hsl(120_50%_55%)] via-[hsl(130_45%_35%)] to-[hsl(140_50%_18%)]" />
+          )}
 
           {/* Ground with perspective lines */}
-          <Path />
+          <Path photoBackground={Boolean(sceneBg)} />
 
-          {/* Bamboo forest sides */}
-          <ForestSides />
+          {/* Bamboo forest sides — only when using default gradient */}
+          <ForestSides visible={!sceneBg} />
 
           {/* Entities */}
           {entities.map((e) => (
@@ -287,37 +417,70 @@ const Stat = ({ label, value }: { label: string; value: number }) => (
   </div>
 );
 
-const Path = () => (
-  <div className="absolute inset-0">
-    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
-      <defs>
-        <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="hsl(140 50% 25%)" />
-          <stop offset="100%" stopColor="hsl(30 40% 20%)" />
-        </linearGradient>
-      </defs>
-      <polygon points="35,50 65,50 100,100 0,100" fill="url(#ground)" />
-      {/* Lane lines */}
-      <line x1="45" y1="50" x2="33" y2="100" stroke="hsl(30 30% 35%)" strokeWidth="0.4" strokeDasharray="2 1.5" />
-      <line x1="55" y1="50" x2="67" y2="100" stroke="hsl(30 30% 35%)" strokeWidth="0.4" strokeDasharray="2 1.5" />
-    </svg>
-  </div>
-);
+const Path = ({ photoBackground }: { photoBackground?: boolean }) => {
+  const gid = photoBackground ? "bugPathGroundPhoto" : "bugPathGround";
+  return (
+    <div className="absolute inset-0 pointer-events-none">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
+        <defs>
+          <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+            {photoBackground ? (
+              <>
+                <stop offset="0%" stopColor="rgba(18, 42, 28, 0.38)" />
+                <stop offset="45%" stopColor="rgba(14, 32, 20, 0.55)" />
+                <stop offset="100%" stopColor="rgba(10, 14, 12, 0.78)" />
+              </>
+            ) : (
+              <>
+                <stop offset="0%" stopColor="hsl(140 50% 25%)" />
+                <stop offset="100%" stopColor="hsl(30 40% 20%)" />
+              </>
+            )}
+          </linearGradient>
+        </defs>
+        <polygon points="35,50 65,50 100,100 0,100" fill={`url(#${gid})`} />
+        <line
+          x1="45"
+          y1="50"
+          x2="33"
+          y2="100"
+          stroke={photoBackground ? "rgba(255,255,255,0.28)" : "hsl(30 30% 35%)"}
+          strokeWidth="0.45"
+          strokeDasharray="2 1.5"
+        />
+        <line
+          x1="55"
+          y1="50"
+          x2="67"
+          y2="100"
+          stroke={photoBackground ? "rgba(255,255,255,0.28)" : "hsl(30 30% 35%)"}
+          strokeWidth="0.45"
+          strokeDasharray="2 1.5"
+        />
+      </svg>
+    </div>
+  );
+};
 
-const ForestSides = () => (
-  <>
-    <div className="absolute left-0 top-0 bottom-0 w-1/4 bg-gradient-to-r from-[hsl(100_45%_15%)] to-transparent pointer-events-none" />
-    <div className="absolute right-0 top-0 bottom-0 w-1/4 bg-gradient-to-l from-[hsl(100_45%_15%)] to-transparent pointer-events-none" />
-    {/* Stylized bamboo silhouettes */}
-    {[10, 18, 4, 86, 92, 78].map((left, i) => (
-      <div
-        key={i}
-        className="absolute bottom-0 w-2 bg-bamboo-dark"
-        style={{ left: `${left}%`, height: `${50 + (i % 3) * 10}%`, opacity: 0.7 }}
-      />
-    ))}
-  </>
-);
+const ForestSides = ({ visible }: { visible: boolean }) =>
+  visible ? (
+    <>
+      <div className="absolute left-0 top-0 bottom-0 w-1/4 bg-gradient-to-r from-[hsl(100_45%_15%)] to-transparent pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-1/4 bg-gradient-to-l from-[hsl(100_45%_15%)] to-transparent pointer-events-none" />
+      {[10, 18, 4, 86, 92, 78].map((left, i) => (
+        <div
+          key={i}
+          className="absolute bottom-0 w-2 bg-bamboo-dark pointer-events-none"
+          style={{ left: `${left}%`, height: `${50 + (i % 3) * 10}%`, opacity: 0.7 }}
+        />
+      ))}
+    </>
+  ) : (
+    <>
+      <div className="absolute left-0 top-0 bottom-0 w-[18%] bg-gradient-to-r from-black/40 to-transparent pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-[18%] bg-gradient-to-l from-black/40 to-transparent pointer-events-none" />
+    </>
+  );
 
 const EntitySprite = ({ entity }: { entity: Entity }) => {
   const { lane, z, type, variant } = entity;
