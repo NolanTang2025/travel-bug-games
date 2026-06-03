@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Loader2, Pause } from "lucide-react";
 import { EditionJournal } from "@/components/EditionJournal";
 import { getEditionById } from "@/data/printEditions";
+import { saveJournalRun } from "@/lib/journalStorage";
 import type { GameEndResult } from "@/games/types";
 
 const gameLoaders = {
@@ -25,10 +26,14 @@ const PrintEditionPlay = () => {
     if (!edition) navigate("/");
   }, [edition, navigate]);
 
-  const handleEnd = useCallback((r: GameEndResult) => {
-    setResult(r);
-    setPhase("over");
-  }, []);
+  const handleEnd = useCallback(
+    (r: GameEndResult) => {
+      setResult(r);
+      setPhase("over");
+      if (edition) saveJournalRun(edition.id, r.score, r.misses);
+    },
+    [edition],
+  );
 
   const start = () => {
     setResult({ score: 0, misses: 0 });

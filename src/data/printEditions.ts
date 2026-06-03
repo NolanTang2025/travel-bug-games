@@ -53,7 +53,7 @@ export const PRINT_EDITIONS: PrintEdition[] = [
       background:
         "linear-gradient(180deg, oklch(0.35 0.12 280), oklch(0.22 0.08 260), oklch(0.15 0.04 250))",
       duration: 45,
-      controls: "Click choices · tap fireflies · avoid rain",
+      controls: "Pick 2 scenes or skip · tap fireflies (28s)",
       genre: "Story RPG + jar catcher",
     },
     scoreTargets: { steady: 70, spark: 120 },
@@ -87,7 +87,7 @@ export const PRINT_EDITIONS: PrintEdition[] = [
       background:
         "linear-gradient(180deg, oklch(0.55 0.22 320), oklch(0.35 0.18 280), oklch(0.18 0.06 260))",
       duration: 30,
-      controls: "↑↓ switch lanes · auto-walk east",
+      controls: "↑↓ lanes or buttons · cross right · dodge cars",
       genre: "Lane dodge / Frogger",
     },
     scoreTargets: { steady: 80, spark: 200 },
@@ -121,7 +121,7 @@ export const PRINT_EDITIONS: PrintEdition[] = [
       background:
         "linear-gradient(180deg, oklch(0.82 0.14 85), oklch(0.68 0.12 55), oklch(0.45 0.08 240))",
       duration: 30,
-      controls: "← → or drag · catch falling tickets",
+      controls: "Move mouse/finger under tickets · dodge birds",
       genre: "Coin / ticket collector",
     },
     scoreTargets: { steady: 100, spark: 220 },
@@ -155,7 +155,7 @@ export const PRINT_EDITIONS: PrintEdition[] = [
       background:
         "linear-gradient(180deg, oklch(0.78 0.12 65), oklch(0.62 0.14 45), oklch(0.38 0.06 30))",
       duration: 30,
-      controls: "WASD / arrows · collect 🍜 · avoid 🏍️",
+      controls: "Drag or WASD · touch phở bowls · dodge bikes",
       genre: "Top-down arena weave",
     },
     scoreTargets: { steady: 80, spark: 180 },

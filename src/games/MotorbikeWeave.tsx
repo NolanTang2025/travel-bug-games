@@ -2,36 +2,52 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { GameCountdown } from "./GameCountdown";
 import { GameHUD } from "./GameHUD";
 import { usePopBursts } from "./PopBurst";
+import { useGameLoop } from "./useGameLoop";
 import type { EditionGameProps } from "./types";
 
 type Bike = { id: number; x: number; y: number; vx: number; vy: number };
 type Bowl = { id: number; x: number; y: number; ttl: number };
 
+const GAME_SECONDS = 32;
+
 export function MotorbikeWeave({ onEnd, paused = false }: EditionGameProps) {
   const [ready, setReady] = useState(false);
   const [px, setPx] = useState(50);
-  const [py, setPy] = useState(50);
+  const [py, setPy] = useState(55);
   const [bikes, setBikes] = useState<Bike[]>([]);
   const [bowls, setBowls] = useState<Bowl[]>([]);
   const [score, setScore] = useState(0);
   const [misses, setMisses] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(30);
+  const [timeLeft, setTimeLeft] = useState(GAME_SECONDS);
   const [invincible, setInvincible] = useState(0);
   const keys = useRef<Set<string>>(new Set());
-  const posRef = useRef({ x: 50, y: 50 });
+  const posRef = useRef({ x: 50, y: 55 });
+  const invincibleRef = useRef(0);
   const idRef = useRef(0);
   const endedRef = useRef(false);
   const statsRef = useRef({ score: 0, misses: 0 });
-  const dragging = useRef(false);
+  const bikeAccRef = useRef(0);
+  const bowlAccRef = useRef(0);
+  const containerRef = useRef<HTMLDivElement>(null);
   const { burst, PopLayer } = usePopBursts();
   const active = ready && !paused;
 
-  useEffect(() => { posRef.current = { x: px, y: py }; }, [px, py]);
-  useEffect(() => { statsRef.current = { score, misses }; }, [score, misses]);
+  useEffect(() => {
+    posRef.current = { x: px, y: py };
+  }, [px, py]);
+  useEffect(() => {
+    invincibleRef.current = invincible;
+  }, [invincible]);
+  useEffect(() => {
+    statsRef.current = { score, misses };
+  }, [score, misses]);
 
-  const moveTo = useCallback((clientX: number, clientY: number, rect: DOMRect) => {
-    const x = Math.max(8, Math.min(92, ((clientX - rect.left) / rect.width) * 100));
-    const y = Math.max(12, Math.min(88, ((clientY - rect.top) / rect.height) * 100));
+  const moveTo = useCallback((clientX: number, clientY: number) => {
+    const el = containerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = Math.max(10, Math.min(90, ((clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(18, Math.min(82, ((clientY - rect.top) / rect.height) * 100));
     posRef.current = { x, y };
     setPx(x);
     setPy(y);
@@ -62,119 +78,116 @@ export function MotorbikeWeave({ onEnd, paused = false }: EditionGameProps) {
       }
       return;
     }
-    const t = setTimeout(() => setTimeLeft((v) => v - 1), 1000);
-    return () => clearTimeout(t);
+    const t = window.setTimeout(() => setTimeLeft((v) => v - 1), 1000);
+    return () => window.clearTimeout(t);
   }, [timeLeft, active, onEnd]);
 
-  useEffect(() => {
-    if (!active) return;
-    const spawnBike = setInterval(() => {
+  useGameLoop(active, (dt) => {
+    const t = dt / 16.67;
+    const k = keys.current;
+    let { x, y } = posRef.current;
+    const spd = 0.55;
+
+    if (k.has("ArrowLeft") || k.has("a")) x -= spd * t;
+    if (k.has("ArrowRight") || k.has("d")) x += spd * t;
+    if (k.has("ArrowUp") || k.has("w")) y -= spd * t;
+    if (k.has("ArrowDown") || k.has("s")) y += spd * t;
+    x = Math.max(10, Math.min(90, x));
+    y = Math.max(18, Math.min(82, y));
+    posRef.current = { x, y };
+    setPx(x);
+    setPy(y);
+
+    bikeAccRef.current += dt;
+    if (bikeAccRef.current > 1000) {
+      bikeAccRef.current = 0;
       idRef.current += 1;
       const edge = Math.floor(Math.random() * 4);
-      let x = 50, y = 50, vx = 0, vy = 0;
-      const speed = 0.25 + Math.random() * 0.2;
-      if (edge === 0) { x = -5; y = 10 + Math.random() * 80; vx = speed; }
-      else if (edge === 1) { x = 105; y = 10 + Math.random() * 80; vx = -speed; }
-      else if (edge === 2) { y = -5; x = 10 + Math.random() * 80; vy = speed; }
-      else { y = 105; x = 10 + Math.random() * 80; vy = -speed; }
-      setBikes((prev) => [...prev, { id: idRef.current, x, y, vx, vy }]);
-    }, 900);
+      let bx = 50, by = 50, bvx = 0, bvy = 0;
+      const speed = 0.32 + Math.random() * 0.22;
+      if (edge === 0) {
+        bx = -8;
+        by = 15 + Math.random() * 70;
+        bvx = speed;
+      } else if (edge === 1) {
+        bx = 108;
+        by = 15 + Math.random() * 70;
+        bvx = -speed;
+      } else if (edge === 2) {
+        by = -8;
+        bx = 15 + Math.random() * 70;
+        bvy = speed;
+      } else {
+        by = 108;
+        bx = 15 + Math.random() * 70;
+        bvy = -speed;
+      }
+      setBikes((prev) => [...prev, { id: idRef.current, x: bx, y: by, vx: bvx, vy: bvy }]);
+    }
 
-    const spawnBowl = setInterval(() => {
+    bowlAccRef.current += dt;
+    if (bowlAccRef.current > 2400) {
+      bowlAccRef.current = 0;
       idRef.current += 1;
       setBowls((prev) => [
         ...prev,
         {
           id: idRef.current,
-          x: 15 + Math.random() * 70,
-          y: 15 + Math.random() * 70,
-          ttl: 180,
+          x: 18 + Math.random() * 64,
+          y: 22 + Math.random() * 56,
+          ttl: 220,
         },
       ]);
-    }, 2200);
+    }
 
-    return () => {
-      clearInterval(spawnBike);
-      clearInterval(spawnBowl);
-    };
-  }, [active]);
-
-  useEffect(() => {
-    if (!active) return;
-    let raf = 0;
-    const tick = () => {
-      const k = keys.current;
-      let { x, y } = posRef.current;
-      const spd = 0.45;
-      if (k.has("ArrowLeft") || k.has("a")) x -= spd;
-      if (k.has("ArrowRight") || k.has("d")) x += spd;
-      if (k.has("ArrowUp") || k.has("w")) y -= spd;
-      if (k.has("ArrowDown") || k.has("s")) y += spd;
-      x = Math.max(8, Math.min(92, x));
-      y = Math.max(12, Math.min(88, y));
-      posRef.current = { x, y };
-      setPx(x);
-      setPy(y);
-
-      setBikes((prev) => {
-        const next: Bike[] = [];
-        for (const b of prev) {
-          const nx = b.x + b.vx;
-          const ny = b.y + b.vy;
-          if (nx < -15 || nx > 115 || ny < -15 || ny > 115) continue;
-          if (invincible <= 0 && Math.hypot(nx - x, ny - y) < 7) {
-            setMisses((m) => m + 1);
-            setInvincible(50);
-            burst(nx, ny, "crash!", "bad");
-            continue;
-          }
-          next.push({ ...b, x: nx, y: ny });
+    setBikes((prev) => {
+      const next: Bike[] = [];
+      for (const b of prev) {
+        const nx = b.x + b.vx * t;
+        const ny = b.y + b.vy * t;
+        if (nx < -18 || nx > 118 || ny < -18 || ny > 118) continue;
+        if (invincibleRef.current <= 0 && Math.hypot(nx - x, ny - y) < 8) {
+          setMisses((m) => m + 1);
+          invincibleRef.current = 55;
+          setInvincible(55);
+          burst(nx, ny, "crash!", "bad");
+          continue;
         }
-        return next;
-      });
+        next.push({ ...b, x: nx, y: ny });
+      }
+      return next;
+    });
 
-      setBowls((prev) => {
-        const next: Bowl[] = [];
-        for (const bowl of prev) {
-          const ttl = bowl.ttl - 1;
-          if (ttl <= 0) continue;
-          if (Math.hypot(bowl.x - x, bowl.y - y) < 8) {
-            setScore((s) => s + 20);
-            burst(bowl.x, bowl.y, "+20");
-            continue;
-          }
-          next.push({ ...bowl, ttl });
+    setBowls((prev) => {
+      const next: Bowl[] = [];
+      for (const bowl of prev) {
+        const ttl = bowl.ttl - t;
+        if (ttl <= 0) continue;
+        if (Math.hypot(bowl.x - x, bowl.y - y) < 11) {
+          setScore((s) => s + 22);
+          burst(bowl.x, bowl.y, "+22");
+          continue;
         }
-        return next;
-      });
+        next.push({ ...bowl, ttl });
+      }
+      return next;
+    });
 
-      setInvincible((i) => Math.max(0, i - 1));
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [active, invincible, burst]);
+    setInvincible((i) => Math.max(0, i - t));
+  });
 
   return (
     <div
-      className="relative w-full h-screen overflow-hidden bg-[#f5e6d0] touch-none"
-      onPointerDown={(e) => {
-        dragging.current = true;
-        moveTo(e.clientX, e.clientY, e.currentTarget.getBoundingClientRect());
-      }}
-      onPointerUp={() => { dragging.current = false; }}
-      onPointerLeave={() => { dragging.current = false; }}
-      onPointerMove={(e) => {
-        if (!dragging.current && e.pointerType !== "mouse") return;
-        if (e.pointerType === "mouse" && e.buttons === 0) return;
-        moveTo(e.clientX, e.clientY, e.currentTarget.getBoundingClientRect());
-      }}
+      ref={containerRef}
+      className="relative w-full min-h-[100dvh] h-[100dvh] overflow-hidden bg-[#f5e6d0] touch-none"
+      onPointerMove={(e) => moveTo(e.clientX, e.clientY)}
+      onPointerDown={(e) => moveTo(e.clientX, e.clientY)}
     >
       {!ready && <GameCountdown onDone={() => setReady(true)} />}
       <PopLayer />
 
       <GameHUD
-        hint="Drag to move · collect phở · avoid bikes"
+        hint="Move cursor/finger · collect phở · dodge bikes"
         pills={[
           { key: "time", label: `⏱ ${timeLeft}s`, className: "bg-black/40 backdrop-blur text-white" },
           { key: "score", label: `🍜 ${score}`, className: "bg-riso-orange text-riso-ink" },
@@ -193,22 +206,24 @@ export function MotorbikeWeave({ onEnd, paused = false }: EditionGameProps) {
       {bowls.map((b) => (
         <div
           key={b.id}
-          className="absolute text-4xl animate-pulse pointer-events-none"
+          className="absolute z-10 flex items-center justify-center rounded-full border-2 border-riso-orange/60 bg-riso-orange/20 pointer-events-none"
           style={{
             left: `${b.x}%`,
             top: `${b.y}%`,
+            width: 48,
+            height: 48,
             transform: "translate(-50%, -50%)",
-            opacity: Math.min(1, b.ttl / 60),
+            opacity: Math.min(1, b.ttl / 80),
           }}
         >
-          🍜
+          <span className="text-3xl">🍜</span>
         </div>
       ))}
 
       {bikes.map((b) => (
         <div
           key={b.id}
-          className="absolute text-3xl sm:text-4xl pointer-events-none"
+          className="absolute text-3xl sm:text-4xl pointer-events-none z-[8]"
           style={{
             left: `${b.x}%`,
             top: `${b.y}%`,
@@ -220,17 +235,21 @@ export function MotorbikeWeave({ onEnd, paused = false }: EditionGameProps) {
       ))}
 
       <div
-        className={`absolute text-4xl z-20 pointer-events-none transition-opacity ${invincible > 0 ? "opacity-40 animate-pulse" : ""}`}
+        className={`absolute z-30 flex items-center justify-center rounded-full border-2 border-riso-ink bg-background/90 shadow-pop-sm ${
+          invincible > 0 ? "opacity-50 animate-pulse" : ""
+        }`}
         style={{
           left: `${px}%`,
           top: `${py}%`,
+          width: 44,
+          height: 44,
           transform: "translate(-50%, -50%)",
         }}
       >
-        🧍
+        <span className="text-2xl">🧍</span>
       </div>
 
-      <div className="absolute bottom-6 right-6 grid grid-cols-3 gap-1 z-30 sm:hidden">
+      <div className="absolute bottom-4 right-4 grid grid-cols-3 gap-1 z-40">
         <div />
         <button
           type="button"
@@ -251,7 +270,11 @@ export function MotorbikeWeave({ onEnd, paused = false }: EditionGameProps) {
         >
           ←
         </button>
-        <div className="sticker-sm bg-riso-yellow p-3 text-center text-xs font-mono text-riso-ink">DRAG</div>
+        <div className="sticker-sm bg-riso-orange/80 p-2 text-center text-[9px] font-mono text-riso-ink leading-tight">
+          drag
+          <br />
+          move
+        </div>
         <button
           type="button"
           className="sticker-sm bg-background text-riso-ink p-3 min-h-[44px] active:scale-95"

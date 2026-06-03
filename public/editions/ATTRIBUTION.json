@@ -1,5 +1,5 @@
 {
-  "note": "Photos and cover art for Travel Bug Print Editions. Prefer coverPhoto for realistic scenes; coverArt is AI-generated risograph-style (no third-party license required).",
+  "note": "Photos and cover art for Travel Bug Print Editions. Community journal uses documentary travel photos (Flickr CC, Wikimedia, Pexels/Unsplash) — no AI portraits or staged stock models.",
   "editions": [
     {
       "id": "kyoto-fireflies",
@@ -70,9 +70,32 @@
       }
     }
   ],
+  "communityJournal": [
+    {
+      "editionId": "kyoto-fireflies",
+      "files": ["journal/kyoto-river-people.jpg", "journal/kyoto-kamo-river.jpg"],
+      "sources": ["Flickr CC BY", "Wikimedia Commons — Kamo River Kyoto"]
+    },
+    {
+      "editionId": "tokyo-crosswalk",
+      "files": ["journal/tokyo-shibuya-busy.jpg", "journal/tokyo-crossing-crop.jpg"],
+      "sources": ["Unsplash", "same upload — crop"]
+    },
+    {
+      "editionId": "lisbon-tram",
+      "files": ["journal/lisbon-tram-street.jpg", "journal/lisbon-tram-close.jpg"],
+      "sources": ["Pexels — Hub JACQU", "same photo — crop"]
+    },
+    {
+      "editionId": "hanoi-motorbike",
+      "files": ["journal/hanoi-traffic.jpg", "journal/hanoi-traffic-crop.jpg"],
+      "sources": ["Unsplash — Mauro Lima", "same upload — crop"]
+    }
+  ],
   "moreSources": {
     "pexels": "https://www.pexels.com/license/",
     "unsplash": "https://unsplash.com/license",
+    "openverse": "https://openverse.org/",
     "photock": "https://photock.org/ — Japan photos, commercial OK, no attribution required"
   }
 }
