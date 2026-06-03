@@ -4,17 +4,25 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { photo, hint } = await req.json();
-    if (!photo || typeof photo !== "string") {
-      return new Response(JSON.stringify({ error: "photo (data URL) is required" }), {
+    const body = await req.json();
+    const photos: string[] = Array.isArray(body.photos)
+      ? body.photos.filter((p: unknown) => typeof p === "string")
+      : typeof body.photo === "string"
+        ? [body.photo]
+        : [];
+
+    if (!photos.length) {
+      return new Response(JSON.stringify({ error: "At least one photo (data URL) is required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    const hint = body.hint;
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const systemPrompt = `You are a playful game designer. Look at a travel photo and invent a SIMPLE one-screen mini-game inspired by what you see (places, objects, weather, mood, food, animals).
+    const systemPrompt = `You are a playful game designer. Look at one or more travel photos from the same trip and invent a SIMPLE one-screen mini-game inspired by what you see (places, objects, weather, mood, food, animals). When multiple photos are provided, weave them into one cohesive game theme.
 
 The game must fit a generic falling-objects template:
 - "catch" mechanic: player taps targets, avoids obstacles
@@ -27,6 +35,10 @@ Pick a CSS linear-gradient background string that matches the scene's colors and
 Keep title playful and under 30 chars. Tagline under 80 chars.`;
 
     const userHint = (typeof hint === "string" && hint.trim()) ? `\n\nUser note about the trip: ${hint.trim().slice(0, 300)}` : "";
+
+    const photoLabel = photos.length > 1
+      ? `Invent a mini-game from these ${photos.length} travel photos from the same diary entry.`
+      : "Invent a mini-game from this travel photo.";
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -41,8 +53,11 @@ Keep title playful and under 30 chars. Tagline under 80 chars.`;
           {
             role: "user",
             content: [
-              { type: "text", text: `Invent a mini-game from this travel photo.${userHint}` },
-              { type: "image_url", image_url: { url: photo } },
+              { type: "text", text: `${photoLabel}${userHint}` },
+              ...photos.map((url) => ({
+                type: "image_url",
+                image_url: { url },
+              })),
             ],
           },
         ],

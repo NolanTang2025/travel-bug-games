@@ -6,12 +6,13 @@ import { ArrowLeft, RotateCcw, Sparkles } from "lucide-react";
 type GameSpec = {
   title: string;
   tagline: string;
-  mechanic: "catch" | "dodge"; // catch = collect targets, dodge = avoid them
+  mechanic: "catch" | "dodge";
   targetEmoji: string;
   obstacleEmoji: string;
-  background: string; // tailwind/css gradient
+  background: string;
   photo: string;
-  duration: number; // seconds
+  photos?: string[];
+  duration: number;
 };
 
 const FALLBACK: GameSpec = {
@@ -44,6 +45,11 @@ const AIGamePlay = () => {
     if (!raw) { navigate("/games/ai-create"); return; }
     try {
       const parsed = JSON.parse(raw);
+      const photos: string[] = Array.isArray(parsed.photos)
+        ? parsed.photos.filter((p: unknown) => typeof p === "string")
+        : parsed.photo
+          ? [parsed.photo]
+          : [];
       const s: GameSpec = {
         title: parsed.title || FALLBACK.title,
         tagline: parsed.tagline || FALLBACK.tagline,
@@ -51,7 +57,8 @@ const AIGamePlay = () => {
         targetEmoji: parsed.targetEmoji || FALLBACK.targetEmoji,
         obstacleEmoji: parsed.obstacleEmoji || FALLBACK.obstacleEmoji,
         background: parsed.background || FALLBACK.background,
-        photo: parsed.photo || "",
+        photo: photos[0] || "",
+        photos,
         duration: Math.min(60, Math.max(15, Number(parsed.duration) || 30)),
       };
       setSpec(s);
@@ -167,9 +174,23 @@ const AIGamePlay = () => {
 
       {phase === "intro" && (
         <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center text-white">
-          {spec.photo && (
+          {(spec.photos?.length ?? 0) > 1 ? (
+            <div className="mb-6 flex flex-wrap items-center justify-center gap-2 max-w-xs">
+              {spec.photos!.map((src, i) => (
+                <img
+                  key={i}
+                  src={src}
+                  alt=""
+                  className={[
+                    "rounded-xl object-cover shadow-card border-4 border-white/30",
+                    i === 0 ? "w-24 h-24 -rotate-3" : "w-20 h-20 rotate-2",
+                  ].join(" ")}
+                />
+              ))}
+            </div>
+          ) : spec.photo ? (
             <img src={spec.photo} alt="" className="w-32 h-32 rounded-2xl object-cover shadow-card mb-6 border-4 border-white/30" />
-          )}
+          ) : null}
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur mb-3">
             <Sparkles className="h-4 w-4" />
             <span className="text-xs font-bold uppercase tracking-wider">AI Generated</span>

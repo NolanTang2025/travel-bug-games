@@ -1,0 +1,78 @@
+{
+  "note": "Photos and cover art for Travel Bug Print Editions. Prefer coverPhoto for realistic scenes; coverArt is AI-generated risograph-style (no third-party license required).",
+  "editions": [
+    {
+      "id": "kyoto-fireflies",
+      "coverPhoto": {
+        "file": "kyoto-fireflies.jpg",
+        "source": "pexels",
+        "id": 573299,
+        "url": "https://www.pexels.com/photo/woman-holding-fireflies-573299/",
+        "photographer": "Bertellifotografia",
+        "license": "Pexels License — free for personal and commercial use",
+        "attribution": "Photo by Bertellifotografia on Pexels"
+      },
+      "coverArt": {
+        "file": "kyoto-fireflies-riso.png",
+        "source": "ai-generated",
+        "license": "Project asset — generated for Travel Bug Games"
+      }
+    },
+    {
+      "id": "tokyo-crosswalk",
+      "coverPhoto": {
+        "file": "tokyo-crosswalk.jpg",
+        "source": "pexels",
+        "id": 31366046,
+        "url": "https://www.pexels.com/photo/young-couple-strolling-at-night-in-shibuya-crossing-31366046/",
+        "photographer": "Hans Zhong",
+        "license": "Pexels License — free for personal and commercial use",
+        "attribution": "Photo by Hans Zhong on Pexels"
+      },
+      "coverArt": {
+        "file": "tokyo-crosswalk-riso.png",
+        "source": "ai-generated",
+        "license": "Project asset — generated for Travel Bug Games"
+      }
+    },
+    {
+      "id": "lisbon-tram",
+      "coverPhoto": {
+        "file": "lisbon-tram.jpg",
+        "source": "pexels",
+        "id": 28962770,
+        "url": "https://www.pexels.com/photo/iconic-tram-in-the-streets-of-lisbon-portugal-28962770/",
+        "photographer": "Hub JACQU",
+        "license": "Pexels License — free for personal and commercial use",
+        "attribution": "Photo by Hub JACQU on Pexels"
+      },
+      "coverArt": {
+        "file": "lisbon-tram-riso.png",
+        "source": "ai-generated",
+        "license": "Project asset — generated for Travel Bug Games"
+      }
+    },
+    {
+      "id": "hanoi-motorbike",
+      "coverPhoto": {
+        "file": "hanoi-motorbike.jpg",
+        "source": "unsplash",
+        "id": "65WkSdpC2ds",
+        "url": "https://unsplash.com/photos/busy-street-scene-with-motorbikes-and-buildings-65WkSdpC2ds",
+        "photographer": "Mauro Lima",
+        "license": "Unsplash License — free for personal and commercial use",
+        "attribution": "Photo by Mauro Lima on Unsplash"
+      },
+      "coverArt": {
+        "file": "hanoi-motorbike-riso.png",
+        "source": "ai-generated",
+        "license": "Project asset — generated for Travel Bug Games"
+      }
+    }
+  ],
+  "moreSources": {
+    "pexels": "https://www.pexels.com/license/",
+    "unsplash": "https://unsplash.com/license",
+    "photock": "https://photock.org/ — Japan photos, commercial OK, no attribution required"
+  }
+}
