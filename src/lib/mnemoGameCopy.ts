@@ -1,5 +1,5 @@
 import type { AIGameTemplateSpec, GameEngine } from "@/games/templates/types";
-import { isTextEngine } from "@/games/templates/types";
+import { isTextEngine, normalizePlayEngine } from "@/games/templates/types";
 import type { GameplayGuide } from "@/lib/gameplayGuide";
 import { BRAND_NAME } from "@/lib/brand";
 
@@ -261,7 +261,7 @@ const GUIDE: Partial<Record<GameEngine, (spec: AIGameTemplateSpec) => GameplayGu
 
 export function buildGameplayGuide(spec: AIGameTemplateSpec): GameplayGuide {
   if (isTextEngine(spec.engine)) return textGuide(spec);
-  const factory = GUIDE[spec.engine];
+  const factory = GUIDE[normalizePlayEngine(spec.engine)];
   return factory ? factory(spec) : catchGuide(spec);
 }
 

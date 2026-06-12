@@ -38,6 +38,12 @@ export function isTextEngine(engine: GameEngine): boolean {
   return engine.startsWith("text_");
 }
 
+/** Legacy shutter mode was too empty; play as catch/dodge instead. */
+export function normalizePlayEngine(engine: GameEngine): GameEngine {
+  if (engine === "shutter_snap") return "falling_catch";
+  return engine;
+}
+
 export type GameTemplateId =
   | "forest_catch"
   | "bamboo_path"

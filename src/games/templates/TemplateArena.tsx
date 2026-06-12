@@ -1,4 +1,5 @@
 import type { AIGameTemplateSpec } from "./types";
+import { normalizePlayEngine } from "./types";
 import { FallingEngine } from "./engines/FallingEngine";
 import {
   DragJarEngine,
@@ -6,7 +7,6 @@ import {
   LanesEngine,
   PhotoPopEngine,
   RhythmEngine,
-  ShutterEngine,
   SwipeWindEngine,
   TramSidesEngine,
 } from "./engines/AltEngines";
@@ -25,20 +25,30 @@ export function TemplateArena({
   photoPreview?: string;
   albumPhotos?: string[];
 }) {
+  const playEngine = normalizePlayEngine(spec.engine);
   const common = { spec, onEnd, photoPreview, albumPhotos };
-  switch (spec.engine) {
+  switch (playEngine) {
     case "falling_catch":
     case "falling_swarm":
     case "falling_tap_clear":
-      return <FallingEngine {...common} mode={spec.engine} />;
+      return (
+        <FallingEngine
+          {...common}
+          mode={
+            spec.engine === "falling_swarm"
+              ? "falling_swarm"
+              : spec.engine === "falling_tap_clear"
+                ? "falling_tap_clear"
+                : "falling_catch"
+          }
+        />
+      );
     case "hold_crosswalk":
       return <HoldCrossEngine {...common} />;
     case "drag_jar":
       return <DragJarEngine {...common} />;
     case "lanes_vertical":
       return <LanesEngine {...common} />;
-    case "shutter_snap":
-      return <ShutterEngine {...common} />;
     case "swipe_wind":
       return <SwipeWindEngine {...common} />;
     case "rhythm_tap":
