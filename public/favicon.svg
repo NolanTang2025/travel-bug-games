@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Mnemo">
+  <rect width="32" height="32" rx="8" fill="#faf6ef"/>
+  <circle cx="16" cy="16" r="11" fill="#ff3b7b" stroke="#1a1a24" stroke-width="2"/>
+  <text
+    x="16"
+    y="21"
+    text-anchor="middle"
+    font-family="system-ui, -apple-system, 'Segoe UI', sans-serif"
+    font-size="14"
+    font-weight="800"
+    fill="#faf6ef"
+  >M</text>
+</svg>

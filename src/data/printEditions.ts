@@ -10,6 +10,8 @@ export type EditionGameSpec = {
   duration: number;
   controls: string;
   genre: string;
+  /** Bundled riso-style SVG sprites — original project assets, commercial use OK */
+  sprites?: Partial<Record<"target" | "obstacle" | "player" | "prop", string>>;
 };
 
 export type PrintEdition = {
@@ -55,6 +57,10 @@ export const PRINT_EDITIONS: PrintEdition[] = [
       duration: 45,
       controls: "Pick 2 scenes or skip · tap fireflies (28s)",
       genre: "Story RPG + jar catcher",
+      sprites: {
+        target: "/editions/sprites/kyoto-fireflies/firefly.svg",
+        obstacle: "/editions/sprites/kyoto-fireflies/rain.svg",
+      },
     },
     scoreTargets: { steady: 70, spark: 120 },
     journal: {
@@ -89,6 +95,10 @@ export const PRINT_EDITIONS: PrintEdition[] = [
       duration: 30,
       controls: "↑↓ lanes or buttons · cross right · dodge cars",
       genre: "Lane dodge / Frogger",
+      sprites: {
+        player: "/editions/sprites/tokyo-crosswalk/pedestrian.svg",
+        obstacle: "/editions/sprites/tokyo-crosswalk/car.svg",
+      },
     },
     scoreTargets: { steady: 80, spark: 200 },
     journal: {
@@ -123,6 +133,11 @@ export const PRINT_EDITIONS: PrintEdition[] = [
       duration: 30,
       controls: "Move mouse/finger under tickets · dodge birds",
       genre: "Coin / ticket collector",
+      sprites: {
+        target: "/editions/sprites/lisbon-tram/ticket.svg",
+        obstacle: "/editions/sprites/lisbon-tram/pigeon.svg",
+        player: "/editions/sprites/lisbon-tram/tram.svg",
+      },
     },
     scoreTargets: { steady: 100, spark: 220 },
     journal: {
@@ -157,6 +172,11 @@ export const PRINT_EDITIONS: PrintEdition[] = [
       duration: 30,
       controls: "Drag or WASD · touch phở bowls · dodge bikes",
       genre: "Top-down arena weave",
+      sprites: {
+        target: "/editions/sprites/hanoi-motorbike/pho.svg",
+        obstacle: "/editions/sprites/hanoi-motorbike/scooter.svg",
+        player: "/editions/sprites/hanoi-motorbike/walker.svg",
+      },
     },
     scoreTargets: { steady: 80, spark: 180 },
     journal: {

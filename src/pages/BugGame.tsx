@@ -1,8 +1,15 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Upload, Bug, Trophy } from "lucide-react";
 import { toast } from "sonner";
+import { useGameEmbedFlags } from "@/lib/embedMode";
+
+const DEFAULT_EMBED_FACE =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="#f4c542" width="100" height="100"/><text x="50" y="58" font-size="48" text-anchor="middle">😈</text></svg>`,
+  );
 
 type Lane = 0 | 1 | 2;
 type Entity = {
@@ -16,8 +23,15 @@ type Entity = {
 const LANE_X = [-1, 0, 1]; // visual offset multiplier
 const SPAWN_INTERVAL = 650; // ms
 const BASE_SPEED = 0.012; // z per frame
+const BUG_FOREST_SPRITES = {
+  beetle: "/editions/sprites/bug-forest/beetle.svg",
+  rock: "/editions/sprites/bug-forest/rock.svg",
+} as const;
 
 const BugGame = () => {
+  const location = useLocation();
+  const { embed, immersive } = useGameEmbedFlags(location.search);
+  const autoStartedRef = useRef(false);
   const [face, setFace] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
   const [gameOver, setGameOver] = useState(false);
@@ -51,7 +65,7 @@ const BugGame = () => {
     reader.readAsDataURL(file);
   };
 
-  const startGame = () => {
+  const startGame = useCallback(() => {
     if (!face) {
       toast.error("Upload a face first 👹");
       return;
@@ -64,7 +78,22 @@ const BugGame = () => {
     setPlaying(true);
     speedRef.current = BASE_SPEED;
     lastSpawnRef.current = performance.now();
-  };
+  }, [face]);
+
+  useEffect(() => {
+    if (!immersive || autoStartedRef.current) return;
+    const readyFace = face ?? DEFAULT_EMBED_FACE;
+    if (!face) setFace(readyFace);
+    autoStartedRef.current = true;
+    setScore(0);
+    setBugsEaten(0);
+    setLane(1);
+    setEntities([]);
+    setGameOver(false);
+    setPlaying(true);
+    speedRef.current = BASE_SPEED;
+    lastSpawnRef.current = performance.now();
+  }, [immersive, face]);
 
   const endGame = useCallback(() => {
     setPlaying(false);
@@ -165,31 +194,44 @@ const BugGame = () => {
   }, [playing, endGame]);
 
   return (
-    <div className="min-h-screen bg-gradient-forest text-primary-foreground overflow-hidden">
+    <div className="min-h-[100dvh] bg-gradient-forest text-primary-foreground overflow-hidden">
       {/* Top bar */}
-      <div className="absolute top-0 left-0 right-0 z-30 p-4 flex items-center justify-between">
-        <Link to="/">
-          <Button variant="secondary" size="sm" className="gap-2">
-            <ArrowLeft className="h-4 w-4" /> Back
-          </Button>
-        </Link>
-        {(playing || gameOver) && (
-          <div className="flex gap-3 text-sm font-bold">
-            <div className="bg-background/20 backdrop-blur px-3 py-1.5 rounded-full">
-              🐛 {bugsEaten}
+      {!embed && (
+        <div className="absolute top-0 left-0 right-0 z-30 p-4 flex items-center justify-between">
+          <Link to="/">
+            <Button variant="secondary" size="sm" className="gap-2">
+              <ArrowLeft className="h-4 w-4" /> Back
+            </Button>
+          </Link>
+          {(playing || gameOver) && (
+            <div className="flex gap-3 text-sm font-bold">
+              <div className="bg-background/20 backdrop-blur px-3 py-1.5 rounded-full">
+                🐛 {bugsEaten}
+              </div>
+              <div className="bg-accent text-accent-foreground px-3 py-1.5 rounded-full">
+                {Math.floor(score)}
+              </div>
             </div>
-            <div className="bg-accent text-accent-foreground px-3 py-1.5 rounded-full">
-              {Math.floor(score)}
-            </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
-      {!playing && !gameOver && (
+      {embed && (playing || gameOver) && (
+        <div className="absolute top-0 right-0 z-30 p-3 flex gap-2 text-sm font-bold pointer-events-none">
+          <div className="bg-background/20 backdrop-blur px-3 py-1.5 rounded-full">
+            🐛 {bugsEaten}
+          </div>
+          <div className="bg-accent text-accent-foreground px-3 py-1.5 rounded-full">
+            {Math.floor(score)}
+          </div>
+        </div>
+      )}
+
+      {!playing && !gameOver && !immersive && (
         <div className="relative z-20 min-h-screen flex flex-col items-center justify-center p-6">
           <div className="text-center mb-8 max-w-md">
             <Bug className="h-16 w-16 mx-auto mb-4 text-bug animate-wiggle" />
-            <h1 className="text-4xl md:text-5xl font-black mb-3">云栖竹径吃虫子</h1>
+            <h1 className="text-4xl md:text-5xl font-black mb-3">Bamboo Trail Bug Bite</h1>
             <p className="text-primary-foreground/80">
               Upload the face of someone you'd love to send through a bamboo forest full of bugs. Run forward, dodge rocks & bamboo, devour every bug.
             </p>
@@ -250,7 +292,7 @@ const BugGame = () => {
           ))}
 
           {/* Player */}
-          <Player face={face!} lane={lane} />
+          <Player face={face ?? DEFAULT_EMBED_FACE} lane={lane} />
 
           {gameOver && (
             <div className="absolute inset-0 z-40 bg-background/80 backdrop-blur flex items-center justify-center p-6">
@@ -320,7 +362,7 @@ const ForestSides = () => (
 );
 
 const EntitySprite = ({ entity }: { entity: Entity }) => {
-  const { lane, z, type, variant } = entity;
+  const { lane, z, type } = entity;
   // Perspective: at z=0 small/centered, at z=1 large/spread
   const scale = 0.15 + z * z * 1.2;
   const laneOffset = LANE_X[lane] * z * 28; // % from center
@@ -330,18 +372,22 @@ const EntitySprite = ({ entity }: { entity: Entity }) => {
 
   let content;
   if (type === "bug") {
-    const colors = ["hsl(60 80% 50%)", "hsl(20 80% 55%)", "hsl(280 60% 60%)", "hsl(0 75% 55%)"];
     content = (
-      <div className="relative" style={{ width: 60, height: 60 }}>
-        <div className="absolute inset-0 rounded-full" style={{ background: colors[variant], boxShadow: "0 4px 10px rgba(0,0,0,0.4)" }} />
-        <div className="absolute top-2 left-3 w-2 h-2 bg-white rounded-full" />
-        <div className="absolute top-2 right-3 w-2 h-2 bg-white rounded-full" />
-        <div className="absolute -top-2 left-1/2 -translate-x-1/2 text-lg">🐛</div>
-      </div>
+      <img
+        src={BUG_FOREST_SPRITES.beetle}
+        alt=""
+        className="edition-sprite-img edition-sprite-target h-[60px] w-[60px] object-contain drop-shadow-[0_6px_14px_rgba(0,0,0,0.45)]"
+        draggable={false}
+      />
     );
   } else if (type === "rock") {
     content = (
-      <div className="rounded-2xl bg-stone-600 border-b-4 border-stone-800" style={{ width: 80, height: 60, boxShadow: "0 6px 14px rgba(0,0,0,0.5)" }} />
+      <img
+        src={BUG_FOREST_SPRITES.rock}
+        alt=""
+        className="edition-sprite-img edition-sprite-obstacle h-[60px] w-[72px] object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)]"
+        draggable={false}
+      />
     );
   } else {
     content = (

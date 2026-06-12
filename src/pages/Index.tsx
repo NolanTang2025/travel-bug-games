@@ -9,8 +9,16 @@ import {
   Zap,
   Star,
   MapPin,
+  UserCircle,
+  ClipboardPaste,
+  Flame,
 } from "lucide-react";
+import { BUNDLED_MANIFEST, featuredMemeTrends } from "@/data/memeTrends";
 import { PRINT_EDITIONS } from "@/data/printEditions";
+import { UgcShowcase } from "@/components/UgcShowcase";
+import { FeatureBetaBadge } from "@/components/FeatureBetaBadge";
+import { BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
+import { MODE_BETA_FEATURES } from "@/lib/launchGate";
 
 function SpotSticker({
   label,
@@ -51,24 +59,22 @@ function Hero() {
         <div>
           <div className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.3em] text-muted-foreground mb-5">
             <span className="inline-block h-2 w-2 rounded-full bg-riso-pink" />
-            Vol. 01 · Pocket Edition
+            {BRAND_TAGLINE}
           </div>
 
           <h1 className="font-display leading-[0.88] tracking-tight text-riso-ink">
             <span className="block text-[clamp(3rem,10vw,7rem)] text-chroma-lg">
-              TRAVEL
+              {BRAND_NAME}
             </span>
-            <span className="block text-[clamp(3rem,10vw,7rem)] -mt-2">
-              <span className="text-riso-pink">BUG</span>
-              <span className="text-riso-ink">.</span>
-              <span className="text-riso-cyan">GAMES</span>
+            <span className="block text-[clamp(1.25rem,4vw,2rem)] -mt-1 font-mono normal-case tracking-tight text-foreground/80">
+              Interactive <span className="text-riso-pink">AI-native</span> social network
             </span>
           </h1>
 
           <p className="mt-7 max-w-xl text-lg sm:text-xl font-mono text-foreground/75 leading-relaxed">
-            A <span className="bg-riso-yellow px-1.5 -skew-x-3 inline-block">pocket arcade</span>,
-            an <span className="bg-riso-pink text-background px-1.5 -skew-x-3 inline-block">AI game press</span>,
-            and a hand-stamped travel journal — all in one tiny riso-printed web-zine.
+            Turn <span className="bg-riso-yellow px-1.5 -skew-x-3 inline-block">social posts</span>,{" "}
+            <span className="bg-riso-pink text-background px-1.5 -skew-x-3 inline-block">travel photos</span>,
+            and journal notes into playable, saveable AI memories.
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-4">
@@ -81,11 +87,18 @@ function Hero() {
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
-              to="/journal"
-              className="sticker inline-flex items-center gap-2 rounded-full bg-background px-6 py-4 text-riso-ink font-display uppercase tracking-wider text-base"
+              to="/play"
+              className="sticker inline-flex items-center gap-2 rounded-full bg-riso-cyan px-6 py-4 text-riso-ink font-display uppercase tracking-wider text-base"
             >
-              <BookOpen className="h-5 w-5" strokeWidth={2.6} />
-              Open journal
+              <ClipboardPaste className="h-5 w-5" strokeWidth={2.6} />
+              Paste a post
+            </Link>
+            <Link
+              to="/journal"
+              className="sticker inline-flex items-center gap-2 rounded-full bg-background px-6 py-4 text-riso-ink font-display uppercase tracking-wider text-sm"
+            >
+              <BookOpen className="h-4 w-4" strokeWidth={2.6} />
+              Journal
             </Link>
           </div>
 
@@ -171,27 +184,17 @@ type Mode = {
   tag: string;
   desc: string;
   to: string;
-  icon: typeof Bug;
+  icon: typeof Zap;
   bg: string;
   ink: string;
   rotate: string;
 };
 
-const modes: Mode[] = [
-  {
-    title: "Bug Forest",
-    tag: "arcade · catch",
-    desc: "Tap, dodge, and catch bugs in a hand-drawn forest. The world's tiniest arcade game.",
-    to: "/games/bug-forest",
-    icon: Bug,
-    bg: "bg-riso-lime",
-    ink: "text-riso-ink",
-    rotate: "rotate--2",
-  },
+const primaryModes: Mode[] = [
   {
     title: "AI Create",
-    tag: "generator · play",
-    desc: "Describe a world. Get a playable arcade game in 10 seconds, riso-stamped and ready.",
+    tag: "start here",
+    desc: "Paste travel photos + a note. Get a playable mini game in seconds — saved to your Journal.",
     to: "/games/ai-create",
     icon: Sparkles,
     bg: "bg-riso-pink",
@@ -199,35 +202,129 @@ const modes: Mode[] = [
     rotate: "rotate-1",
   },
   {
-    title: "Travel Journal",
-    tag: "book · memory",
-    desc: "Stamp your trip into a pocket zine. Stickers, photos, AI captions — all yours.",
-    to: "/journal",
-    icon: BookOpen,
+    title: "Paste a post",
+    tag: "instagram · beta",
+    desc: "Drop an Instagram or RedNote link — post → game is in private beta; results may be incomplete.",
+    to: "/play",
+    icon: ClipboardPaste,
     bg: "bg-riso-cyan",
     ink: "text-riso-ink",
     rotate: "rotate--1",
   },
   {
-    title: "Multiplayer Join",
-    tag: "code · play",
-    desc: "Your friend made a game? Punch the code and jump in. No signup, no fuss.",
-    to: "/games/join",
-    icon: Users,
+    title: "Travel Journal",
+    tag: "book · memory",
+    desc: "Your trips live here. Remix games, finish AI summaries, copy captions for Story.",
+    to: "/journal",
+    icon: BookOpen,
     bg: "bg-riso-yellow",
     ink: "text-riso-ink",
     rotate: "rotate-2",
   },
 ];
 
+const moreModes: Mode[] = [
+  {
+    title: "Twin",
+    tag: "discord · beta",
+    desc: "AI travel twin drafts replies in your voice — Discord connect is in private beta.",
+    to: "/twin",
+    icon: UserCircle,
+    bg: "bg-riso-violet",
+    ink: "text-background",
+    rotate: "rotate--2",
+  },
+  {
+    title: "Join with code",
+    tag: "multiplayer",
+    desc: "Friend sent a room code? Jump into their session — sign in to host your own.",
+    to: "/games/join",
+    icon: Users,
+    bg: "bg-background",
+    ink: "text-riso-ink",
+    rotate: "rotate-1",
+  },
+];
+
+function ViralTrendsBand() {
+  const featured = featuredMemeTrends(BUNDLED_MANIFEST, 3);
+  return (
+    <section className="relative border-y-2 border-riso-ink bg-riso-ink text-background overflow-hidden">
+      <div className="absolute inset-0 opacity-20 pointer-events-none" aria-hidden>
+        <div
+          className="absolute -right-20 -top-20 h-72 w-72 rounded-full"
+          style={{ background: "radial-gradient(circle, var(--riso-pink), transparent 70%)" }}
+        />
+        <div
+          className="absolute -left-16 bottom-0 h-64 w-64 rounded-full"
+          style={{ background: "radial-gradient(circle, var(--riso-cyan), transparent 70%)" }}
+        />
+      </div>
+
+      <div className="relative mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-14 sm:py-16">
+        <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+          <div>
+            <p className="font-mono text-xs uppercase tracking-[0.3em] text-riso-yellow mb-3 flex items-center gap-2 flex-wrap">
+              <Flame className="h-3.5 w-3.5" />
+              <span>▚ Section 02 · Viral Lab ▚</span>
+              <FeatureBetaBadge feature="trendRemixToGame" />
+            </p>
+            <h2 className="font-display text-4xl sm:text-6xl leading-[0.92] tracking-tight">
+              Ride the <span className="text-riso-pink">meme</span>,
+              <br />
+              press <span className="text-riso-cyan">your story</span>.
+            </h2>
+            <p className="mt-5 max-w-lg font-mono text-sm text-background/75 leading-relaxed">
+              Six Seven, fox-on-the-mountain, love-your-older-self — pick what&apos;s trending, drop what
+              actually happened to you. One press → playable clip + caption ready to post this week.
+            </p>
+            <Link
+              to="/trends"
+              className="sticker mt-8 inline-flex items-center gap-2 rounded-full bg-riso-pink px-7 py-4 font-display uppercase tracking-wider text-background group"
+            >
+              Open viral lab
+              <FeatureBetaBadge feature="trendRemixToGame" />
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+            {featured.map((t, i) => (
+              <Link
+                key={t.id}
+                to={`/trends?trend=${t.id}`}
+                className={[
+                  "sticker-sm rounded-2xl border-2 border-background/25 p-4 bg-background/10 backdrop-blur-sm",
+                  "hover:bg-background/20 transition-colors group",
+                  i % 2 ? "rotate-1" : "rotate--1",
+                ].join(" ")}
+              >
+                <span className="text-2xl" aria-hidden>
+                  {t.emoji}
+                </span>
+                <p className="mt-2 font-display text-lg uppercase leading-tight text-background group-hover:text-riso-yellow transition-colors">
+                  {t.title}
+                </p>
+                <p className="mt-1 font-mono text-[9px] uppercase tracking-widest text-background/55">
+                  {t.platforms[0]}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Modes() {
   return (
-    <section className="relative border-y-2 border-riso-ink bg-riso-yellow/30">
+    <section className="relative border-b-2 border-riso-ink bg-riso-yellow/30">
       <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex items-end justify-between flex-wrap gap-4 mb-10">
           <div>
             <p className="font-mono text-xs uppercase tracking-[0.3em] text-muted-foreground mb-2">
-              ▚ Section 02 ▚
+              ▚ Section 03 ▚
             </p>
             <h2 className="font-display text-5xl sm:text-6xl tracking-tight">
               Pick a <span className="text-riso-pink">zine</span>,
@@ -239,9 +336,10 @@ function Modes() {
           </p>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {modes.map((m) => {
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {primaryModes.map((m) => {
             const Icon = m.icon;
+            const betaFeature = MODE_BETA_FEATURES[m.to];
             return (
               <Link
                 key={m.to}
@@ -256,8 +354,9 @@ function Modes() {
                     {m.tag}
                   </span>
                 </div>
-                <h3 className="mt-auto font-display text-3xl leading-none">
+                <h3 className="mt-auto font-display text-3xl leading-none flex items-center gap-2 flex-wrap">
                   {m.title}
+                  {betaFeature && <FeatureBetaBadge feature={betaFeature} />}
                 </h3>
                 <p className="mt-2 font-mono text-sm leading-snug opacity-85">
                   {m.desc}
@@ -266,6 +365,40 @@ function Modes() {
                   Enter
                   <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                 </div>
+              </Link>
+            );
+          })}
+        </div>
+
+        <p className="mt-10 mb-4 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+          More ways to play
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {moreModes.map((m) => {
+            const Icon = m.icon;
+            const betaFeature = MODE_BETA_FEATURES[m.to];
+            return (
+              <Link
+                key={m.to}
+                to={m.to}
+                className={`sticker-sm ${m.bg} ${m.ink} ${m.rotate} rounded-2xl border-2 border-riso-ink/15 p-5 flex gap-4 items-start group`}
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-riso-ink bg-background/90 text-riso-ink">
+                  <Icon className="h-5 w-5" strokeWidth={2.4} />
+                </span>
+                <div className={`min-w-0 flex-1 ${m.ink}`}>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.2em] opacity-80">
+                    {m.tag}
+                  </p>
+                  <h3 className="font-display text-xl leading-tight flex items-center gap-2 flex-wrap">
+                    {m.title}
+                    {betaFeature && <FeatureBetaBadge feature={betaFeature} />}
+                  </h3>
+                  <p className="mt-1 font-mono text-xs leading-snug opacity-90">{m.desc}</p>
+                </div>
+                <ArrowRight
+                  className={`h-4 w-4 shrink-0 mt-1 opacity-80 ${m.ink} group-hover:translate-x-0.5 transition-transform`}
+                />
               </Link>
             );
           })}
@@ -281,7 +414,7 @@ function PrintEditions() {
       <div className="flex items-end justify-between flex-wrap gap-4 mb-10">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.3em] text-muted-foreground mb-2">
-            ▚ Section 03 ▚
+            ▚ Section 04 ▚
           </p>
           <h2 className="font-display text-5xl sm:text-6xl tracking-tight">
             Print <span className="text-riso-violet">editions</span>.
@@ -373,16 +506,16 @@ function CTABand() {
                 Make my game →
               </Link>
               <Link
+                to="/play"
+                className="sticker bg-riso-cyan text-riso-ink rounded-full px-7 py-4 text-center font-display uppercase tracking-wider"
+              >
+                Paste a post →
+              </Link>
+              <Link
                 to="/journal"
                 className="sticker bg-riso-yellow text-riso-ink rounded-full px-7 py-4 text-center font-display uppercase tracking-wider"
               >
-                Start a journal →
-              </Link>
-              <Link
-                to="/games/join"
-                className="sticker bg-background text-riso-ink rounded-full px-7 py-4 text-center font-display uppercase tracking-wider"
-              >
-                Join with code →
+                Open journal →
               </Link>
             </div>
           </div>
@@ -395,7 +528,9 @@ function CTABand() {
 const Index = () => (
   <>
     <Hero />
+    <ViralTrendsBand />
     <Modes />
+    <UgcShowcase />
     <PrintEditions />
     <CTABand />
   </>

@@ -1,4 +1,31 @@
-project_id = "rhzxjicrxuokwzchdpof"
+project_id = "mwvizvnjywefiyptqizw"
 
 [functions.generate-game]
+verify_jwt = false
+
+[functions.generate-archive]
+verify_jwt = false
+
+[functions.generate-twin]
+verify_jwt = false
+
+[functions.slack-oauth]
+verify_jwt = false
+
+[functions.slack-events]
+verify_jwt = false
+
+[functions.slack-draft-reply]
+verify_jwt = false
+
+[functions.slack-send-draft]
+verify_jwt = false
+
+[functions.import-instagram]
+verify_jwt = false
+
+[functions.instagram-to-game]
+verify_jwt = false
+
+[functions.social-to-game]
 verify_jwt = false

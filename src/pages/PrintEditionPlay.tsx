@@ -1,9 +1,12 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Loader2, Pause } from "lucide-react";
 import { EditionJournal } from "@/components/EditionJournal";
-import { getEditionById } from "@/data/printEditions";
+import { getEditionById, getPerformanceTier } from "@/data/printEditions";
+import { getCommunityPost } from "@/data/communityPosts";
 import { saveJournalRun } from "@/lib/journalStorage";
+import { autoArchiveFromPrintEdition } from "@/lib/autoArchive";
+import { useGameEmbedFlags } from "@/lib/embedMode";
 import type { GameEndResult } from "@/games/types";
 
 const gameLoaders = {
@@ -15,10 +18,14 @@ const gameLoaders = {
 
 const PrintEditionPlay = () => {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
+  const { embed, immersive } = useGameEmbedFlags(location.search);
   const edition = id ? getEditionById(id) : undefined;
 
-  const [phase, setPhase] = useState<"intro" | "play" | "paused" | "over">("intro");
+  const [phase, setPhase] = useState<"intro" | "play" | "paused" | "over">(
+    immersive ? "play" : "intro",
+  );
   const [result, setResult] = useState<GameEndResult>({ score: 0, misses: 0 });
   const [playKey, setPlayKey] = useState(0);
 
@@ -26,11 +33,34 @@ const PrintEditionPlay = () => {
     if (!edition) navigate("/");
   }, [edition, navigate]);
 
+  useEffect(() => {
+    if (immersive && edition) {
+      setResult({ score: 0, misses: 0 });
+      setPlayKey((k) => k + 1);
+      setPhase("play");
+    }
+  }, [immersive, edition?.id]);
+
   const handleEnd = useCallback(
     (r: GameEndResult) => {
       setResult(r);
       setPhase("over");
-      if (edition) saveJournalRun(edition.id, r.score, r.misses);
+      if (edition) {
+        saveJournalRun(edition.id, r.score, r.misses);
+        const post = getCommunityPost(edition.id);
+        const tier = getPerformanceTier(r.score, r.misses, edition);
+        const footnote = post?.gameFootnote[tier]
+          ?.replace("{score}", String(r.score))
+          .replace("{misses}", String(r.misses)) ?? `Score ${r.score}`;
+        const journalText = [
+          post?.body ?? edition.blurb,
+          "",
+          `— My run · ${footnote}`,
+          `${edition.city} · ${edition.dateStamp}`,
+        ].join("\n");
+        const imageUrls = post?.photos.map((p) => p.src) ?? [edition.coverPhoto];
+        void autoArchiveFromPrintEdition(edition.id, journalText, imageUrls);
+      }
     },
     [edition],
   );
@@ -47,8 +77,8 @@ const PrintEditionPlay = () => {
   const GameComponent = gameLoaders[spec.type];
 
   return (
-    <div className="min-h-screen relative overflow-hidden" style={{ background: spec.background }}>
-      {phase !== "play" && phase !== "paused" && (
+    <div className="min-h-[100dvh] relative overflow-hidden" style={{ background: spec.background }}>
+      {!embed && phase !== "play" && phase !== "paused" && (
         <div className="absolute top-0 left-0 right-0 z-30 p-4">
           <Link
             to="/"
@@ -100,21 +130,23 @@ const PrintEditionPlay = () => {
 
       {(phase === "play" || phase === "paused") && (
         <>
-          <div className="absolute top-0 left-0 right-0 z-40 p-4 flex justify-between items-start pointer-events-none">
-            <button
-              type="button"
-              onClick={() => setPhase("paused")}
-              className="sticker-sm pointer-events-auto inline-flex items-center gap-2 rounded-full bg-background px-3 py-1.5 text-sm font-display uppercase tracking-wide text-riso-ink min-h-[44px] active:scale-95 transition-transform"
-              aria-label="Pause game"
-            >
-              <Pause className="h-4 w-4" /> Pause
-            </button>
-          </div>
+          {!embed && (
+            <div className="absolute top-0 left-0 right-0 z-40 p-4 flex justify-between items-start pointer-events-none">
+              <button
+                type="button"
+                onClick={() => setPhase("paused")}
+                className="sticker-sm pointer-events-auto inline-flex items-center gap-2 rounded-full bg-background px-3 py-1.5 text-sm font-display uppercase tracking-wide text-riso-ink min-h-[44px] active:scale-95 transition-transform"
+                aria-label="Pause game"
+              >
+                <Pause className="h-4 w-4" /> Pause
+              </button>
+            </div>
+          )}
 
           <div className={phase === "paused" ? "pointer-events-none opacity-40 blur-[1px]" : ""}>
             <Suspense
               fallback={
-                <div className="min-h-screen flex items-center justify-center text-white">
+                <div className="min-h-[100dvh] flex items-center justify-center text-white">
                   <Loader2 className="h-8 w-8 animate-spin" />
                 </div>
               }
@@ -123,7 +155,7 @@ const PrintEditionPlay = () => {
             </Suspense>
           </div>
 
-          {phase === "paused" && (
+          {!embed && phase === "paused" && (
             <div className="absolute inset-0 z-50 flex items-center justify-center p-6 bg-riso-ink/50 backdrop-blur-sm animate-in fade-in duration-200">
               <div className="sticker bg-background text-riso-ink p-8 max-w-sm w-full text-center rotate--1">
                 <p className="font-display text-2xl uppercase tracking-wide mb-2">Paused</p>
@@ -150,7 +182,25 @@ const PrintEditionPlay = () => {
         </>
       )}
 
-      {phase === "over" && (
+      {phase === "over" && embed && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center p-6 bg-riso-ink/60 backdrop-blur-sm">
+          <div className="sticker bg-background text-riso-ink p-8 max-w-sm w-full text-center rotate--1">
+            <p className="font-display text-2xl uppercase tracking-wide mb-2">Run complete</p>
+            <p className="font-mono text-xs text-muted-foreground mb-6">
+              Score {result.score} · Misses {result.misses}
+            </p>
+            <button
+              type="button"
+              onClick={start}
+              className="sticker bg-riso-yellow text-riso-ink font-display uppercase tracking-wider px-6 py-3 rounded-full active:scale-[0.98] transition-transform min-h-[48px] w-full"
+            >
+              Play again
+            </button>
+          </div>
+        </div>
+      )}
+
+      {phase === "over" && !embed && (
         <>
           <div className="min-h-screen opacity-30 pointer-events-none" style={{ background: spec.background }} />
           <EditionJournal

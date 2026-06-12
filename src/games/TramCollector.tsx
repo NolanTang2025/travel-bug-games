@@ -3,6 +3,9 @@ import { GameCountdown } from "./GameCountdown";
 import { GameHUD } from "./GameHUD";
 import { useKeyboard, usePopBursts } from "./PopBurst";
 import { useGameLoop } from "./useGameLoop";
+import { bumpCombo, difficultyRamp, resetCombo, spawnInterval } from "./gameUtils";
+import { EditionPlayShell } from "./EditionPlayShell";
+import { EditionSprite, editionSpriteSrc } from "./EditionSprite";
 import type { EditionGameProps } from "./types";
 
 type Collectible = {
@@ -15,9 +18,9 @@ type Collectible = {
 
 const GAME_SECONDS = 32;
 const CATCH_Y = 78;
-const CATCH_HALF_W = 14;
+const CATCH_HALF_W = 16;
 
-export function TramCollector({ onEnd, paused = false }: EditionGameProps) {
+export function TramCollector({ edition, onEnd, paused = false }: EditionGameProps) {
   const [ready, setReady] = useState(false);
   const [tramX, setTramX] = useState(50);
   const [items, setItems] = useState<Collectible[]>([]);
@@ -25,7 +28,10 @@ export function TramCollector({ onEnd, paused = false }: EditionGameProps) {
   const [misses, setMisses] = useState(0);
   const [timeLeft, setTimeLeft] = useState(GAME_SECONDS);
   const [hitFlash, setHitFlash] = useState(false);
+  const [combo, setCombo] = useState(resetCombo);
   const idRef = useRef(0);
+  const comboRef = useRef(resetCombo());
+  const elapsedRef = useRef(0);
   const tramRef = useRef(tramX);
   const statsRef = useRef({ score: 0, misses: 0 });
   const endedRef = useRef(false);
@@ -76,9 +82,11 @@ export function TramCollector({ onEnd, paused = false }: EditionGameProps) {
 
   useGameLoop(active, (dt) => {
     const t = dt / 16.67;
+    elapsedRef.current += dt;
+    const ramp = difficultyRamp(elapsedRef.current, GAME_SECONDS * 1000);
 
     spawnAccRef.current += dt;
-    if (spawnAccRef.current > 850) {
+    if (spawnAccRef.current > spawnInterval(820, ramp, 450)) {
       spawnAccRef.current = 0;
       idRef.current += 1;
       const isTicket = Math.random() < 0.78;
@@ -101,18 +109,28 @@ export function TramCollector({ onEnd, paused = false }: EditionGameProps) {
       for (const it of prev) {
         const y = it.y + it.vy * t;
         if (y > 108) {
-          if (it.kind === "ticket") setMisses((m) => m + 1);
+          if (it.kind === "ticket") {
+            comboRef.current = resetCombo();
+            setCombo(resetCombo());
+            setMisses((m) => m + 1);
+          }
           continue;
         }
 
         if (y >= CATCH_Y - 6 && y <= CATCH_Y + 10) {
           if (Math.abs(it.x - tx) < CATCH_HALF_W) {
             if (it.kind === "ticket") {
-              setScore((s) => s + 18);
-              burst(it.x, CATCH_Y, "+18");
+              const cmb = bumpCombo(comboRef.current);
+              comboRef.current = cmb;
+              setCombo(cmb);
+              const pts = 18 * cmb.multiplier;
+              setScore((s) => s + pts);
+              burst(it.x, CATCH_Y, `+${pts}`);
             } else {
+              comboRef.current = resetCombo();
+              setCombo(resetCombo());
               setMisses((m) => m + 1);
-              setScore((s) => Math.max(0, s - 10));
+              setScore((s) => Math.max(0, s - 8));
               setHitFlash(true);
               window.setTimeout(() => setHitFlash(false), 280);
               burst(it.x, CATCH_Y, "bird!", "bad");
@@ -126,10 +144,15 @@ export function TramCollector({ onEnd, paused = false }: EditionGameProps) {
     });
   });
 
+  const ticketSrc = editionSpriteSrc(edition, "target");
+  const pigeonSrc = editionSpriteSrc(edition, "obstacle");
+  const tramSrc = editionSpriteSrc(edition, "player");
+
   return (
+    <EditionPlayShell edition={edition}>
     <div
       ref={containerRef}
-      className="relative w-full min-h-[100dvh] h-[100dvh] overflow-hidden touch-none"
+      className="relative h-full overflow-hidden touch-none"
       onPointerMove={(e) => setTramFromClientX(e.clientX)}
       onPointerDown={(e) => setTramFromClientX(e.clientX)}
     >
@@ -141,6 +164,11 @@ export function TramCollector({ onEnd, paused = false }: EditionGameProps) {
         pills={[
           { key: "time", label: `⏱ ${timeLeft}s`, className: "bg-black/40 backdrop-blur text-white" },
           { key: "score", label: `🎫 ${score}`, className: "bg-riso-yellow text-riso-ink" },
+          {
+            key: "combo",
+            label: combo.count > 0 ? `×${combo.multiplier}` : "combo",
+            className: "bg-riso-cyan/90 text-riso-ink",
+          },
           { key: "miss", label: `🐦 ${misses}`, className: "bg-riso-pink/90 text-background" },
         ]}
       />
@@ -156,21 +184,29 @@ export function TramCollector({ onEnd, paused = false }: EditionGameProps) {
       {items.map((it) => (
         <div
           key={it.id}
-          className={`absolute text-4xl pointer-events-none z-10 ${
-            it.kind === "ticket" ? "" : "opacity-90"
-          }`}
+          className="absolute pointer-events-none z-10"
           style={{
             left: `${it.x}%`,
             top: `${it.y}%`,
             transform: "translate(-50%, -50%)",
           }}
         >
-          {it.kind === "ticket" ? "🎫" : "🐦"}
+          {it.kind === "ticket" ? (
+            ticketSrc ? (
+              <EditionSprite src={ticketSrc} variant="target" size={44} />
+            ) : (
+              <span className="text-4xl">🎫</span>
+            )
+          ) : pigeonSrc ? (
+            <EditionSprite src={pigeonSrc} variant="obstacle" size={46} />
+          ) : (
+            <span className="text-4xl opacity-90">🐦</span>
+          )}
         </div>
       ))}
 
       <div
-        className={`absolute z-30 text-5xl sm:text-6xl transition-[left] duration-75 ${
+        className={`absolute z-30 transition-[left] duration-75 ${
           hitFlash ? "animate-pulse scale-110" : ""
         }`}
         style={{
@@ -179,7 +215,11 @@ export function TramCollector({ onEnd, paused = false }: EditionGameProps) {
           transform: "translate(-50%, -50%)",
         }}
       >
-        🚋
+        {tramSrc ? (
+          <EditionSprite src={tramSrc} variant="player" size={64} />
+        ) : (
+          <span className="text-5xl sm:text-6xl">🚋</span>
+        )}
       </div>
 
       <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4 z-40 px-4">
@@ -199,5 +239,6 @@ export function TramCollector({ onEnd, paused = false }: EditionGameProps) {
         </button>
       </div>
     </div>
+    </EditionPlayShell>
   );
 }

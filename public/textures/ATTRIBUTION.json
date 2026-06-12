@@ -1,0 +1,22 @@
+{
+  "sources": [
+    {
+      "file": "paper-clean-white-512.png (derived from 2048px source)",
+      "origin": "https://cdn.texturize.app/textures/paper-clean-white/",
+      "license": "Royalty-free, no attribution required (Texturize)",
+      "usage": "Seamless CSS background tile for insights zine surfaces"
+    },
+    {
+      "file": "paper-rice-512.png",
+      "origin": "https://cdn.texturize.app/textures/paper-rice-paper/",
+      "license": "Royalty-free, no attribution required (Texturize)",
+      "usage": "Warm paper texture for passport and polaroid cards"
+    },
+    {
+      "file": "cork-board-512.png",
+      "origin": "https://cdn.texturize.app/textures/cork-cork-board/",
+      "license": "Royalty-free, no attribution required (Texturize)",
+      "usage": "Cork pin-board background for places station"
+    }
+  ]
+}

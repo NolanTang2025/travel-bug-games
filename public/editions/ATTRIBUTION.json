@@ -97,5 +97,10 @@
     "unsplash": "https://unsplash.com/license",
     "openverse": "https://openverse.org/",
     "photock": "https://photock.org/ — Japan photos, commercial OK, no attribution required"
+  },
+  "gameSprites": {
+    "note": "Original risograph-style SVG stickers in public/editions/sprites/ — created for Mnemo sample games, free for commercial use in this project.",
+    "license": "Project asset — no attribution required",
+    "editions": ["kyoto-fireflies", "tokyo-crosswalk", "lisbon-tram", "hanoi-motorbike", "bug-forest"]
   }
 }

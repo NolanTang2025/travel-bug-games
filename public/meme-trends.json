@@ -1,0 +1,743 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-06-10T18:30:00Z",
+  "refreshEveryHours": 24,
+  "maxTrendAgeDays": 14,
+  "region": "na-tiktok",
+  "featuredIds": [
+    "melissa-drunk-outside",
+    "crank-it-grad",
+    "rich-in-life",
+    "like-a-prayer-summer",
+    "met-gala-ai-2026"
+  ],
+  "trends": [
+    {
+      "id": "raining-men-champagne",
+      "title": "It's Raining Men",
+      "subtitle": "champagne pop · birthday reel swap",
+      "heat": "blazing",
+      "platforms": [
+        "Instagram",
+        "Reels",
+        "TikTok"
+      ],
+      "peakWindow": "May 28 → Jun 14",
+      "expiresAt": "2026-06-24T23:59:59Z",
+      "gist": "Skip cake-cutting — tap the bottle, spray the fizz, sync the pop to It's Raining Men. Pure birthday spectacle energy.",
+      "storyPrompt": "What moment on your trip felt like a champagne-pop level celebration?",
+      "storyStarters": [
+        "finally made it to the viewpoint after a brutal hike",
+        "surprise upgrade at check-in — main character spray energy",
+        "last night of the trip, bottles out on the balcony"
+      ],
+      "llmBrief": "Trend: NA Instagram/TikTok champagne birthday pop (late May–Jun 2026). Dramatic bottle tap/spray synced to The Weather Girls \"It's Raining Men.\" Replaces cake clips with cinematic fizz bursts. Cheap bubbly OK. User maps peak travel celebration to this spectacle format. High-energy, performative, not corporate.",
+      "emoji": "🍾",
+      "gradient": "linear-gradient(145deg, oklch(0.92 0.14 85), oklch(0.78 0.22 350))",
+      "viralPlaybook": [
+        "Tap bottle → spray on beat with It's Raining Men",
+        "Cut from fizz burst to your game screen-record",
+        "Caption: celebration energy, not cake-cutting"
+      ],
+      "hookExamples": [
+        "not me replacing cake with champagne spray",
+        "it's raining men and this trip hit different"
+      ],
+      "hashtags": [
+        "#ItsRainingMen",
+        "#BirthdayTok",
+        "#Mnemo",
+        "#TravelTok"
+      ],
+      "coverUrl": "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?auto=format&fit=crop&w=800&h=1000&q=85"
+    },
+    {
+      "id": "birthday-walk",
+      "title": "Birthday Walk",
+      "subtitle": "slow-mo strut · squad + cupcake",
+      "heat": "blazing",
+      "platforms": [
+        "TikTok",
+        "Reels"
+      ],
+      "peakWindow": "May 25 → Jun 14",
+      "expiresAt": "2026-06-24T23:59:59Z",
+      "gist": "Slow-mo walk toward camera with your people, matching fits, cupcake or drink in hand — you own the block.",
+      "storyPrompt": "What walk on your trip had main-character, birthday-walk confidence?",
+      "storyStarters": [
+        "strutting through the night market like we planned this",
+        "airport arrival slow-mo — trip starts now",
+        "golden hour boardwalk walk with the whole crew"
+      ],
+      "llmBrief": "Trend: Birthday Walk (NA TikTok, May 2026). 17-sec slow-mo forward walk, coordinated outfits, confetti/cupcake optional, empowering soundtrack. Texas-origin format hit tens of millions of views. User recreates with travel crew arrival or peak vibe walk. Boss energy, not posed tourist brochure.",
+      "emoji": "🚶",
+      "gradient": "linear-gradient(145deg, oklch(0.9 0.12 145), oklch(0.82 0.18 85))",
+      "viralPlaybook": [
+        "Slow-mo walk toward camera with your crew",
+        "Matching fits or one standout accessory",
+        "End on game fail or victory — boss energy"
+      ],
+      "hookExamples": [
+        "birthday walk but make it airport arrival",
+        "the way we owned this block"
+      ],
+      "hashtags": [
+        "#BirthdayWalk",
+        "#MainCharacter",
+        "#Mnemo",
+        "#TravelTok"
+      ],
+      "coverUrl": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&h=1000&q=85"
+    },
+    {
+      "id": "golden-champagne-bday",
+      "title": "Champagne Birthday",
+      "subtitle": "age = date · once-in-a-lifetime",
+      "heat": "hot",
+      "platforms": [
+        "TikTok",
+        "Reels",
+        "Pinterest"
+      ],
+      "peakWindow": "May 30 → Jun 14",
+      "expiresAt": "2026-06-24T23:59:59Z",
+      "gist": "Turning the age that matches your birth date (the 9th → 9, the 25th → 25). Gold/glam or champagne theme — TikTok turned it into a whole era.",
+      "storyPrompt": "Did your trip line up with a milestone birthday or \"lucky date\" energy?",
+      "storyStarters": [
+        "turned 25 abroad on the 25th — couldn't script it",
+        "golden hour on my champagne birthday trip",
+        "friends threw a glam night because the numbers matched"
+      ],
+      "llmBrief": "Trend: Golden/Champagne Birthday (NA TikTok + Instagram, ongoing Jun 2026 spike). When age matches calendar date — gold décor, champagne motifs, countdown/reveal content. Same concept as golden birthday. User ties travel milestone or synchronicity to this once-only vibe. Aesthetic but personal, Gen Z birthday culture.",
+      "emoji": "✨",
+      "gradient": "linear-gradient(145deg, oklch(0.88 0.16 85), oklch(0.72 0.12 55))",
+      "viralPlaybook": [
+        "Gold/glam palette if age matches date",
+        "Reveal the synchronicity in caption line 1",
+        "Game B-roll as 'golden moment' proof"
+      ],
+      "hookExamples": [
+        "turned 25 on the 25th abroad",
+        "champagne birthday energy on a travel milestone"
+      ],
+      "hashtags": [
+        "#GoldenBirthday",
+        "#ChampagneBirthday",
+        "#Mnemo",
+        "#TravelTok"
+      ],
+      "coverUrl": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&h=1000&q=85"
+    },
+    {
+      "id": "birthday-grwm",
+      "title": "Birthday GRWM",
+      "subtitle": "get ready · turning [age] voiceover",
+      "heat": "hot",
+      "platforms": [
+        "TikTok",
+        "Reels"
+      ],
+      "peakWindow": "Jun 1 → Jun 14",
+      "expiresAt": "2026-06-24T23:59:59Z",
+      "gist": "Film the full get-ready arc — makeup, fit, hair — with trending audio or a voiceover about how turning [age] actually feels.",
+      "storyPrompt": "What was your \"getting ready for the big trip day\" ritual?",
+      "storyStarters": [
+        "packing the fit for the one fancy dinner night",
+        "5am alarm GRWM before the sunrise hike",
+        "hostel bathroom mirror — we're going out tonight"
+      ],
+      "llmBrief": "Trend: Birthday GRWM edition (NA TikTok, billions of #BirthdayGRWM views). Makeup/outfit/hair transformation with emotional or trending audio about new age. User reframes as travel-day prep or departure GRWM. Intimate, relatable, vertical-native.",
+      "emoji": "💄",
+      "gradient": "linear-gradient(145deg, oklch(0.85 0.2 340), oklch(0.78 0.16 55))",
+      "viralPlaybook": [
+        "Film prep montage: fit, mirror, departure",
+        "Voiceover or trending audio about the big day",
+        "Cut to game when you 'leave the house'"
+      ],
+      "hookExamples": [
+        "GRWM for the one fancy dinner night",
+        "5am alarm GRWM before the sunrise hike"
+      ],
+      "hashtags": [
+        "#BirthdayGRWM",
+        "#GRWM",
+        "#Mnemo",
+        "#TravelTok"
+      ],
+      "coverUrl": "https://images.unsplash.com/photo-1556656793-08538906a9f8?auto=format&fit=crop&w=800&h=1000&q=85"
+    },
+    {
+      "id": "pop-spray-repeat",
+      "title": "Pop Spray Repeat",
+      "subtitle": "CapCut template · shake & spray",
+      "heat": "hot",
+      "platforms": [
+        "Instagram",
+        "Reels"
+      ],
+      "peakWindow": "May 29 → Jun 9",
+      "expiresAt": "2026-06-23T23:59:59Z",
+      "gist": "Open the bottle, thumb on top, shake, partial release for max spray — often a CapCut template syncing spray to the beat. Sparkling wine counts.",
+      "storyPrompt": "What travel win deserved a ridiculous celebratory spray moment?",
+      "storyStarters": [
+        "got the last-minute train seats — spray energy",
+        "reunion at the airport after months apart",
+        "found the hidden beach the locals mentioned"
+      ],
+      "llmBrief": "Trend: Pop-spray-repeat champagne format (NA Instagram Reels, late May 2026). Technique: open bottle, shake with thumb covering, slide thumb for controlled spray. CapCut templates auto-sync to disco/birthday audio. Cheaper bubbly encouraged. User maps to travel victory moment. Visual-first, easy recreate.",
+      "emoji": "🫧",
+      "gradient": "linear-gradient(145deg, oklch(0.9 0.1 55), oklch(0.72 0.22 25))",
+      "viralPlaybook": [
+        "Shake bottle, thumb release on beat",
+        "CapCut template sync if available",
+        "Map spray to a travel win, not random flex"
+      ],
+      "hookExamples": [
+        "pop spray repeat because we got the seats",
+        "the way this win deserved bubbles"
+      ],
+      "hashtags": [
+        "#PopSprayRepeat",
+        "#Mnemo",
+        "#TravelTok",
+        "#CoreMemory"
+      ],
+      "coverUrl": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=800&h=1000&q=85"
+    },
+    {
+      "id": "this-is-age-montage",
+      "title": "This Is [Age]",
+      "subtitle": "childhood → now · milestone cut",
+      "heat": "warm",
+      "platforms": [
+        "TikTok",
+        "Reels"
+      ],
+      "peakWindow": "Jun 1 → Jun 14",
+      "expiresAt": "2026-06-24T23:59:59Z",
+      "gist": "Quick cuts from old photos to now — \"this is 21,\" \"this is 30\" — emotional birthday montage format still everywhere on the FYP.",
+      "storyPrompt": "If your trip was a \"this is [age]\" montage, what clips would make the cut?",
+      "storyStarters": [
+        "kid at the beach → same beach this summer",
+        "first passport stamp → this trip's stamp",
+        "before I traveled solo → after"
+      ],
+      "llmBrief": "Trend: \"This Is [Age]\" birthday montage (NA TikTok, milestone birthdays especially 18/21/30). Childhood photo → present transition with emotional audio. User adapts to travel growth arc or same-place return. Nostalgic, shareable, milestone-coded.",
+      "emoji": "📸",
+      "gradient": "linear-gradient(145deg, oklch(0.88 0.08 250), oklch(0.75 0.12 220))",
+      "viralPlaybook": [
+        "Old photo → now cut with emotional audio",
+        "Title card: this is [age] or this is the trip",
+        "Game clip as 'present day' beat"
+      ],
+      "hookExamples": [
+        "this is 21 and the brochure lied",
+        "kid at the beach → same beach this summer"
+      ],
+      "hashtags": [
+        "#ThisIs21",
+        "#BirthdayMontage",
+        "#Mnemo",
+        "#TravelTok"
+      ],
+      "coverUrl": "https://images.unsplash.com/photo-1530521954074-e64f6810b32d?auto=format&fit=crop&w=800&h=1000&q=85"
+    },
+    {
+      "id": "birthday-photoshoot",
+      "title": "Birthday Photoshoot",
+      "subtitle": "outfit reveal · #BirthdayPhotoshoot",
+      "heat": "warm",
+      "platforms": [
+        "TikTok",
+        "Reels"
+      ],
+      "peakWindow": "May 27 → Jun 10",
+      "expiresAt": "2026-06-24T23:59:59Z",
+      "gist": "Dedicated birthday fit shoot — reveal the look, spin, pose sequence. Hashtag still pulling billions of views.",
+      "storyPrompt": "What photo from your trip was pure birthday-photoshoot energy?",
+      "storyStarters": [
+        "the one alley shot where the fit actually popped",
+        "rooftop golden hour — we did a whole mini shoot",
+        "matching outfits at the landmark — no shame"
+      ],
+      "llmBrief": "Trend: Birthday Photoshoot reveal (NA TikTok #BirthdayPhotoshoot). Outfit-focused reveal edits, spin transitions, group coord looks. User picks peak travel photo moment or recreates shoot energy from trip. Visual, aesthetic, Instagram-native.",
+      "emoji": "📷",
+      "gradient": "linear-gradient(145deg, oklch(0.92 0.14 85), oklch(0.78 0.22 350))",
+      "viralPlaybook": [
+        "Outfit reveal → spin → pose sequence",
+        "One landmark or alley as backdrop",
+        "Screen-record game as 'BTS of the shoot'"
+      ],
+      "hookExamples": [
+        "birthday photoshoot energy at the rooftop",
+        "the fit ate and the game proved it"
+      ],
+      "hashtags": [
+        "#BirthdayPhotoshoot",
+        "#Mnemo",
+        "#TravelTok",
+        "#FitCheck"
+      ],
+      "coverUrl": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&h=1000&q=85"
+    },
+    {
+      "id": "melissa-drunk-outside",
+      "title": "Melissa I'm Drunk and Outside",
+      "subtitle": "chaotic call energy · Jay Baptiste rework",
+      "heat": "blazing",
+      "platforms": [
+        "TikTok",
+        "Reels"
+      ],
+      "peakWindow": "Jun 1 → Jun 14",
+      "expiresAt": "2026-06-24T23:59:59Z",
+      "gist": "Melissa, I'm drunk and outside… — turn any travel win into a dramatic sidewalk call. Buzzball optional, main-character energy mandatory.",
+      "storyPrompt": "What trip moment had you texting the group chat like you couldn't wait another second?",
+      "storyStarters": [
+        "just landed and already outside the bar like I discovered fire",
+        "found the hidden beach and had to tell everyone RIGHT NOW",
+        "survived the red-eye and I'm celebrating on the curb"
+      ],
+      "llmBrief": "Trend: Melissa I'm Drunk and Outside (NA TikTok, Jun 2026). Jay Baptiste rework of Afroplugs audio. Creators overlay why they're unhinged/excited while walking outside or fake-calling a friend. Ramdam + FYP spike early June. User maps impulsive travel highs to this chaotic celebration format. Funny, dramatic, not polished.",
+      "emoji": "📱",
+      "gradient": "linear-gradient(145deg, oklch(0.92 0.14 85), oklch(0.78 0.22 350))",
+      "viralPlaybook": [
+        "Fake-call or walk-and-talk: Melissa, I'm drunk and outside…",
+        "Explain WHY you're unhinged/excited in one breath",
+        "Cut to game — chaotic energy, not polished"
+      ],
+      "hookExamples": [
+        "melissa i'm drunk and outside because we found the beach",
+        "not me calling the group chat from the curb"
+      ],
+      "hashtags": [
+        "#MelissaImDrunkAndOutside",
+        "#Mnemo",
+        "#TravelTok",
+        "#CoreMemory"
+      ],
+      "coverUrl": "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=800&h=1000&q=85"
+    },
+    {
+      "id": "astronaut-moon",
+      "title": "I'm an Astronaut, You're the Moon",
+      "subtitle": "gratitude carousel · orbit energy",
+      "heat": "blazing",
+      "platforms": [
+        "TikTok",
+        "Reels"
+      ],
+      "peakWindow": "Jun 1 → Jun 14",
+      "expiresAt": "2026-06-24T23:59:59Z",
+      "gist": "Text: I'm an astronaut, you're the moon — then photo dump whoever/whatever you always orbit back to. Wholesome or unhinged obsession.",
+      "storyPrompt": "On your trip, what person, place, or snack do you keep circling back to?",
+      "storyStarters": [
+        "the one café we hit every morning like it's gravity",
+        "my travel buddy who plans everything while I just orbit",
+        "that one viewpoint we kept returning to at golden hour"
+      ],
+      "llmBrief": "Trend: I'm an Astronaut You're the Moon (NA TikTok, Jun 2026). Noah Kahan-adjacent audio + text overlay; photo carousel or montage of your 'moon.' Emotional or joke version both work. Ramdam flagged Jun 8. User reframes travel dependencies — crew, comfort food, landmark — as orbit content.",
+      "emoji": "🌙",
+      "gradient": "linear-gradient(145deg, oklch(0.88 0.08 250), oklch(0.75 0.12 220))",
+      "viralPlaybook": [
+        "Text: I'm an astronaut, you're the moon",
+        "Photo carousel of who/what you orbit",
+        "Wholesome or unhinged — pick one lane"
+      ],
+      "hookExamples": [
+        "i'm an astronaut you're the moon (it's the café)",
+        "the way I keep circling back to this spot"
+      ],
+      "hashtags": [
+        "#AstronautMoon",
+        "#Mnemo",
+        "#TravelTok",
+        "#PhotoDump"
+      ],
+      "coverUrl": "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=800&h=1000&q=85"
+    },
+    {
+      "id": "rich-in-life",
+      "title": "Rich in Life",
+      "subtitle": "gratitude montage · not money flex",
+      "heat": "blazing",
+      "platforms": [
+        "TikTok",
+        "Reels",
+        "Instagram"
+      ],
+      "peakWindow": "May 25 → Jun 14",
+      "expiresAt": "2026-07-01T23:59:59Z",
+      "gist": "Overlay rich in life because… then soft clips of what actually fills you up — friends, routines, pets, freedom. Warm, nostalgic, anti-flex.",
+      "storyPrompt": "What made you feel rich in life on this trip — without spending like a flex?",
+      "storyStarters": [
+        "rich in life because we walked everywhere and laughed till midnight",
+        "…because the hostel kitchen became our nightly ritual",
+        "…because I finally felt present instead of documenting everything"
+      ],
+      "llmBrief": "Trend: Rich in Life (NA TikTok/Reels, Jun 2026). Text hook 'rich in life because…' + personal clip montage; no single required audio (Matt Berry Take My Hand common). Social Growthengers reports 74M+ aggregate views. Anti-haul sincerity. User lists non-material travel wealth — crew, pace, small rituals.",
+      "emoji": "🫶",
+      "gradient": "linear-gradient(145deg, oklch(0.9 0.12 145), oklch(0.82 0.18 85))",
+      "viralPlaybook": [
+        "Open: rich in life because…",
+        "Soft montage — no money flex",
+        "Game clip as one 'wealth' moment"
+      ],
+      "hookExamples": [
+        "rich in life because we walked till midnight",
+        "not rich in money rich in this trip"
+      ],
+      "hashtags": [
+        "#RichInLife",
+        "#Mnemo",
+        "#TravelTok",
+        "#Gratitude"
+      ],
+      "coverUrl": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&h=1000&q=85"
+    },
+    {
+      "id": "like-a-prayer-summer",
+      "title": "2026 Summer Anthem",
+      "subtitle": "Josh Fawaz · Like a Prayer remix",
+      "heat": "blazing",
+      "platforms": [
+        "TikTok",
+        "Reels"
+      ],
+      "peakWindow": "May 30 → Jun 14",
+      "expiresAt": "2026-06-24T23:59:59Z",
+      "gist": "Seven-second lip-sync to Josh Fawaz's Like a Prayer remix + on-screen text 2026 Summer Anthem. Madonna nostalgia does the heavy lifting.",
+      "storyPrompt": "What's your seven-second summer-anthem moment from the trip?",
+      "storyStarters": [
+        "poolside lip-sync — text says 2026 Summer Anthem",
+        "golden hour on the balcony, committed eye contact",
+        "last night abroad energy in one close-up clip"
+      ],
+      "llmBrief": "Trend: 2026 Summer Anthem / Josh Fawaz Like a Prayer remix (NA TikTok, Jun 2026). ~7s lip-sync, on-screen '2026 Summer Anthem', #summeranthem. New Engen: small creators hitting millions. Minimal concept — audio + face. User tags peak summer travel beat.",
+      "emoji": "☀️",
+      "gradient": "linear-gradient(145deg, oklch(0.9 0.1 55), oklch(0.72 0.22 25))",
+      "viralPlaybook": [
+        "~7s lip-sync to Like a Prayer remix",
+        "On-screen text: 2026 Summer Anthem",
+        "Close-up face + one travel beat"
+      ],
+      "hookExamples": [
+        "2026 summer anthem and this balcony hit",
+        "seven seconds of main character summer"
+      ],
+      "hashtags": [
+        "#2026SummerAnthem",
+        "#SummerAnthem",
+        "#Mnemo",
+        "#TravelTok"
+      ],
+      "coverUrl": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&h=1000&q=85"
+    },
+    {
+      "id": "puerto-rico-song",
+      "title": "The Puerto Rico Song",
+      "subtitle": "Saxboy Billy · summer lip-sync",
+      "heat": "blazing",
+      "platforms": [
+        "TikTok",
+        "Reels"
+      ],
+      "peakWindow": "May 28 → Jun 14",
+      "expiresAt": "2026-06-24T23:59:59Z",
+      "gist": "Mouth Saxboy Billy's Puerto Rico hook over city walks, outfit reveals, or day-in-the-life — catchy enough that the vibe carries the whole clip.",
+      "storyPrompt": "What street, fit, or travel day deserves this song as its soundtrack?",
+      "storyStarters": [
+        "lip-sync strut through the old town at blue hour",
+        "GRWM before the night out — hook on the mirror moment",
+        "random Tuesday abroad but the song makes it cinematic"
+      ],
+      "llmBrief": "Trend: Puerto Rico Song by Saxboy Billy (NA TikTok, Jun 2026). Earworm lip-sync over city/GRWM/travel B-roll per New Engen June report. Culturally specific but broad summer appeal. User pairs destination walks or fit checks with committed lip-sync; minimal edit.",
+      "emoji": "🎷",
+      "gradient": "linear-gradient(145deg, oklch(0.85 0.2 340), oklch(0.78 0.16 55))",
+      "viralPlaybook": [
+        "Committed lip-sync over city walk or GRWM",
+        "Hook in first 2 seconds — earworm carries it",
+        "Game B-roll under same vibe"
+      ],
+      "hookExamples": [
+        "random tuesday abroad but the song said puerto rico",
+        "lip-sync strut through the old town"
+      ],
+      "hashtags": [
+        "#PuertoRicoSong",
+        "#Mnemo",
+        "#TravelTok",
+        "#LipSync"
+      ],
+      "coverUrl": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&h=1000&q=85"
+    },
+    {
+      "id": "crank-it-grad",
+      "title": "Crank It Graduation",
+      "subtitle": "Slayyyter CRANK · stage mouth-sync",
+      "heat": "blazing",
+      "platforms": [
+        "TikTok",
+        "Reels"
+      ],
+      "peakWindow": "May 1 → Jun 14",
+      "expiresAt": "2026-06-24T23:59:59Z",
+      "gist": "Mouth crank it as you cross the stage to Slayyyter's CRANK — Happy Crankulation captions everywhere for class of 2026.",
+      "storyPrompt": "What trip milestone would you crank-walk across like you just got the diploma?",
+      "storyStarters": [
+        "made it through customs after 14 hours — crank it",
+        "finally found the hostel after getting lost — graduation energy",
+        "last day abroad, strutting like I earned a degree in chaos"
+      ],
+      "llmBrief": "Trend: Crank It Graduation (NA TikTok, class of 2026). Slayyyter CRANK mouthing on stage; captions like Happy Crankulation, Wor$t Grad in America. User maps travel completion moments to crank energy. English-language US college commencement format.",
+      "emoji": "🎓",
+      "gradient": "linear-gradient(145deg, oklch(0.92 0.14 85), oklch(0.78 0.22 350))",
+      "viralPlaybook": [
+        "Mouth 'crank it' on beat — Slayyyter CRANK",
+        "Caption: Happy Crankulation / trip edition",
+        "Strut through milestone like a stage walk"
+      ],
+      "hookExamples": [
+        "happy crankulation I survived customs",
+        "crank it because we finally found the hostel"
+      ],
+      "hashtags": [
+        "#CrankIt",
+        "#HappyCrankulation",
+        "#Mnemo",
+        "#TravelTok"
+      ],
+      "coverUrl": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=800&h=1000&q=85"
+    },
+    {
+      "id": "aura-grad-walk",
+      "title": "How Much Aura Did Bro Gain",
+      "subtitle": "nose-shoulder pose · grad walk",
+      "heat": "blazing",
+      "platforms": [
+        "TikTok",
+        "Reels"
+      ],
+      "peakWindow": "May 12 → Jun 14",
+      "expiresAt": "2026-06-24T23:59:59Z",
+      "gist": "Graduate notices camera, touches nose then shoulder — How much aura did bro gain? Accuracy reenactments everywhere.",
+      "storyPrompt": "Which travel strut would add the most aura points?",
+      "storyStarters": [
+        "spotting our Airbnb from the wrong alley — aura gained",
+        "walking into the restaurant we booked last minute",
+        "catching the sunset train with zero plan"
+      ],
+      "llmBrief": "Trend: How Much Aura Did Bro Gain (NA TikTok, May–Jun 2026). @filmedbyjackson origin May 12; nose-tap shoulder pose on grad walk. Know Your Meme accuracy reenactments. User maps confident travel arrival moments to aura pose. English overlay text.",
+      "emoji": "✨",
+      "gradient": "linear-gradient(145deg, oklch(0.75 0.2 300), oklch(0.7 0.15 220))",
+      "viralPlaybook": [
+        "Notice camera → nose tap → shoulder pose",
+        "Text: how much aura did bro gain?",
+        "Accuracy reenactment on arrival strut"
+      ],
+      "hookExamples": [
+        "how much aura did bro gain finding the airbnb",
+        "the walk in when you know you ate"
+      ],
+      "hashtags": [
+        "#Aura",
+        "#GradWalk",
+        "#Mnemo",
+        "#TravelTok"
+      ],
+      "coverUrl": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&h=1000&q=85"
+    },
+    {
+      "id": "thats-my-why",
+      "title": "That's My Why",
+      "subtitle": "3-slide partner · sincere punchline",
+      "heat": "hot",
+      "platforms": [
+        "TikTok",
+        "Reels"
+      ],
+      "peakWindow": "Apr → Jun 14",
+      "expiresAt": "2026-06-24T23:59:59Z",
+      "gist": "Slide 1: context about your person. Slide 2: the sweet or unhinged reason. Slide 3: that's my why. Relationship appreciation as meme.",
+      "storyPrompt": "Who made this trip work — and what's the oddly specific reason they're your why?",
+      "storyStarters": [
+        "he carried every bag so I could film sunsets — that's my why",
+        "she planned the whole route while I just showed up cute",
+        "they said yes to the detour that became the best day"
+      ],
+      "llmBrief": "Trend: That's My Why (NA TikTok, May–Jun 2026). Three-slide carousel; sincere intro → specific acts → punchline 'that's my why.' Medianug reports 1.2M videos. Mix sweet and joke. User credits travel partner/crew with hyper-specific gratitude.",
+      "emoji": "💛",
+      "gradient": "linear-gradient(145deg, oklch(0.85 0.2 340), oklch(0.78 0.16 55))",
+      "viralPlaybook": [
+        "Slide 1: context about your person",
+        "Slide 2: specific sweet/unhinged reason",
+        "Slide 3: that's my why + game clip"
+      ],
+      "hookExamples": [
+        "he carried every bag so I could film — that's my why",
+        "they said yes to the detour — that's my why"
+      ],
+      "hashtags": [
+        "#ThatsMyWhy",
+        "#Mnemo",
+        "#TravelTok",
+        "#CoreMemory"
+      ],
+      "coverUrl": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&h=1000&q=85"
+    },
+    {
+      "id": "wow-ok-challenge",
+      "title": "Wow, Okay",
+      "subtitle": "4 acting reads · same two words",
+      "heat": "hot",
+      "platforms": [
+        "TikTok",
+        "Reels"
+      ],
+      "peakWindow": "Jun 1 → Jun 14",
+      "expiresAt": "2026-06-24T23:59:59Z",
+      "gist": "Deliver wow, okay four ways: supportive, disappointed, sarcastic, flirty. Original audio, numbered text, comments pick the winner.",
+      "storyPrompt": "Which four travel moments would get four different wow, okay reactions?",
+      "storyStarters": [
+        "supportive when your friend finally books the trip",
+        "disappointed at the 6am flight",
+        "flirty when they suggest skipping the museum for wine"
+      ],
+      "llmBrief": "Trend: Wow Okay acting challenge (NA TikTok, Jun 2026). Duo or solo; four distinct line reads of 'wow, okay.' No trending sound — performance is the hook. New Engen Week of Jun 1. User maps travel micro-dramas to four tones; comment bait.",
+      "emoji": "🎭",
+      "gradient": "linear-gradient(145deg, oklch(0.88 0.08 250), oklch(0.75 0.12 220))",
+      "viralPlaybook": [
+        "Four reads of wow, okay: supportive / disappointed / sarcastic / flirty",
+        "Number each take on screen",
+        "Ask comments to pick the winner"
+      ],
+      "hookExamples": [
+        "wow okay (supportive) when they booked the trip",
+        "wow okay (disappointed) at the 6am flight"
+      ],
+      "hashtags": [
+        "#WowOkay",
+        "#ActingChallenge",
+        "#Mnemo",
+        "#TravelTok"
+      ],
+      "coverUrl": "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&w=800&h=1000&q=85"
+    },
+    {
+      "id": "top10-camera-roll",
+      "title": "Top 10 Camera Roll",
+      "subtitle": "photo carousel · Bliss slowed",
+      "heat": "hot",
+      "platforms": [
+        "TikTok",
+        "Reels"
+      ],
+      "peakWindow": "Year-round · Jun resurge",
+      "expiresAt": "2026-07-15T23:59:59Z",
+      "gist": "Title slide: top 10 photos from my camera roll — then 5–10 swipeable stills with dreamy audio (Bliss Slowed classic). Nostalgic, save-bait.",
+      "storyPrompt": "If you had to pick ten trip photos you'd never delete, which moments make the cut?",
+      "storyStarters": [
+        "top 10 from the road trip I'll cry about later",
+        "the chaotic ones, not the influencer ones",
+        "every photo where the light was unfairly good"
+      ],
+      "llmBrief": "Trend: Top 10 Photos From My Camera Roll carousel (NA TikTok, resurging Jun 2026 per New Engen). Photo Mode slideshow; Bliss (Slowed) common pairing. Hook on slide 1, 5–8 images optimal. User curates trip stills as nostalgic dump — aesthetic, personal.",
+      "emoji": "🖼️",
+      "gradient": "linear-gradient(145deg, oklch(0.9 0.12 145), oklch(0.82 0.18 85))",
+      "viralPlaybook": [
+        "Title: top 10 photos from my camera roll",
+        "5–10 swipeable stills + dreamy audio",
+        "End on game as #11 — the one you played"
+      ],
+      "hookExamples": [
+        "top 10 from the road trip I'll cry about",
+        "the chaotic ones not the influencer ones"
+      ],
+      "hashtags": [
+        "#Top10CameraRoll",
+        "#PhotoDump",
+        "#Mnemo",
+        "#TravelTok"
+      ],
+      "coverUrl": "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=800&h=1000&q=85"
+    },
+    {
+      "id": "met-gala-ai-2026",
+      "title": "Met Gala AI Portrait",
+      "subtitle": "Costume Art · ChatGPT couture",
+      "heat": "blazing",
+      "platforms": [
+        "TikTok",
+        "Instagram",
+        "Reels"
+      ],
+      "peakWindow": "May 1 → Jun 14",
+      "expiresAt": "2026-06-24T23:59:59Z",
+      "gist": "Upload selfie → ChatGPT/Gemini → Met Gala 2026 red carpet portrait. Bubble dress, metallic wings, museum steps.",
+      "storyPrompt": "What Met Gala look would your trip get under Fashion Is Art?",
+      "storyStarters": [
+        "bubble dress on the beach boardwalk — AI gala edit",
+        "feather cape at the mountain viewpoint",
+        "sculpted metal fit on the old town steps"
+      ],
+      "llmBrief": "Trend: Met Gala AI portraits (NA TikTok/IG, May 2026). Theme Costume Art / Fashion Is Art. ChatGPT prompts for red carpet with paparazzi flash. English prompts dominate NA FYP. User places travel persona on Met steps — high CTR identity fantasy, US/Canada creators.",
+      "emoji": "👗",
+      "gradient": "linear-gradient(145deg, oklch(0.75 0.2 300), oklch(0.7 0.15 220))",
+      "viralPlaybook": [
+        "Show AI Met Gala portrait OR describe the look",
+        "Theme: Costume Art / Fashion Is Art",
+        "Game as 'behind the scenes' of your red carpet"
+      ],
+      "hookExamples": [
+        "met gala 2026 but make it my travel persona",
+        "bubble dress on the boardwalk — AI gala edit"
+      ],
+      "hashtags": [
+        "#MetGala2026",
+        "#AIPortrait",
+        "#Mnemo",
+        "#TravelTok"
+      ],
+      "coverUrl": "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=800&h=1000&q=85"
+    },
+    {
+      "id": "ai-vogue-cover",
+      "title": "AI Vogue Cover",
+      "subtitle": "Gemini portrait · masthead edit",
+      "heat": "blazing",
+      "platforms": [
+        "TikTok",
+        "Reels",
+        "Instagram"
+      ],
+      "peakWindow": "May → Jun 14",
+      "expiresAt": "2026-06-24T23:59:59Z",
+      "gist": "Upload selfie → Gemini/ChatGPT → Vogue-style editorial cover with logo and cover lines.",
+      "storyPrompt": "What trip moment deserves its own Vogue cover?",
+      "storyStarters": [
+        "Vogue: She Finally Made It to Lisbon",
+        "cover line: Three Cities, Zero Sleep",
+        "editorial at the landmark — fake masthead real confidence"
+      ],
+      "llmBrief": "Trend: AI Vogue/magazine cover (NA TikTok 2026). Selfie to high-fashion cover with Y2K or classic editorial styles. #VogueChallenge evolution. English cover lines. User creates travel milestone as magazine cover — NA identity fantasy format.",
+      "emoji": "📰",
+      "gradient": "linear-gradient(145deg, oklch(0.92 0.14 85), oklch(0.78 0.22 350))",
+      "viralPlaybook": [
+        "Fake Vogue masthead + cover line about your trip",
+        "Selfie → editorial OR describe the cover",
+        "Game clip as 'inside the spread'"
+      ],
+      "hookExamples": [
+        "Vogue: She Finally Made It to Lisbon",
+        "cover line: three cities zero sleep"
+      ],
+      "hashtags": [
+        "#VogueChallenge",
+        "#AICover",
+        "#Mnemo",
+        "#TravelTok"
+      ],
+      "coverUrl": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&h=1000&q=85"
+    }
+  ]
+}

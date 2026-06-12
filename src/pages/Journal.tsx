@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { BookOpen, Sparkles, Stamp, Trash2 } from "lucide-react";
+import { BookOpen, Loader2, MapPin, Plus, Sparkles, Stamp, Trash2 } from "lucide-react";
 import { COMMUNITY_POSTS, getCommunityPost } from "@/data/communityPosts";
 import { PRINT_EDITIONS } from "@/data/printEditions";
 import { JournalPostCard } from "@/components/JournalPostCard";
@@ -11,19 +11,96 @@ import {
   type SavedJournalRun,
 } from "@/lib/journalStorage";
 import { toast } from "sonner";
+import { InstagramImport } from "@/components/InstagramImport";
+import { TravelArchiveCard } from "@/components/TravelArchiveCard";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  fetchArchiveCoverPaths,
+  listUserArchives,
+  resolveArchiveThumbUrls,
+  type UserArchive,
+} from "@/lib/archiveApi";
+import { getCachedMediaObjectUrls } from "@/lib/mediaImageCache";
 
-type Tab = "community" | "stamps";
+type Tab = "mine" | "community" | "stamps";
+
+function tabFromParams(raw: string | null): Tab {
+  if (raw === "stamps") return "stamps";
+  if (raw === "community") return "community";
+  return "mine";
+}
 
 const Journal = () => {
+  const { user, loading: authLoading } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const editionFilter = searchParams.get("edition") ?? "all";
-  const [tab, setTab] = useState<Tab>(searchParams.get("tab") === "stamps" ? "stamps" : "community");
+  const [tab, setTab] = useState<Tab>(() => tabFromParams(searchParams.get("tab")));
+  const [archives, setArchives] = useState<UserArchive[]>([]);
+  const [thumbs, setThumbs] = useState<Record<string, string>>({});
+  const [archivesLoading, setArchivesLoading] = useState(false);
   const [openPostId, setOpenPostId] = useState<string | null>(
     searchParams.get("post") ?? null,
   );
   const [runs, setRuns] = useState(getJournalRuns);
 
   const refreshRuns = () => setRuns(getJournalRuns());
+
+  const loadArchives = useCallback(async (opts?: { background?: boolean }) => {
+    if (!user) {
+      setArchives([]);
+      setThumbs({});
+      return;
+    }
+    if (!opts?.background) setArchivesLoading(true);
+    try {
+      const rows = await listUserArchives();
+      setArchives(rows);
+
+      const ids = rows.slice(0, 24).map((arch) => arch.id);
+      if (!ids.length) {
+        setThumbs({});
+        return;
+      }
+
+      const pathsByArchive = await fetchArchiveCoverPaths(ids);
+      const cachedByPath = await getCachedMediaObjectUrls(Object.values(pathsByArchive));
+      const cachedThumbs: Record<string, string> = {};
+      for (const [archiveId, path] of Object.entries(pathsByArchive)) {
+        if (cachedByPath[path]) cachedThumbs[archiveId] = cachedByPath[path];
+      }
+      if (Object.keys(cachedThumbs).length) setThumbs(cachedThumbs);
+
+      const map = await resolveArchiveThumbUrls(ids);
+      setThumbs(map);
+    } catch (e) {
+      console.error("[journal] loadArchives failed", e);
+      setArchives([]);
+      setThumbs({});
+    } finally {
+      setArchivesLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    void loadArchives();
+  }, [authLoading, user, loadArchives]);
+
+  useEffect(() => {
+    const onUpdate = () => {
+      if (!authLoading && user) void loadArchives({ background: true });
+    };
+    window.addEventListener("mnemo-archive-updated", onUpdate);
+    return () => window.removeEventListener("mnemo-archive-updated", onUpdate);
+  }, [authLoading, user, loadArchives]);
+
+  const switchTab = (next: Tab) => {
+    setTab(next);
+    const params = new URLSearchParams(searchParams);
+    if (next === "mine") params.delete("tab");
+    else params.set("tab", next);
+    setSearchParams(params, { replace: true });
+  };
 
   const filteredPosts = useMemo(() => {
     if (editionFilter === "all") return COMMUNITY_POSTS;
@@ -57,24 +134,38 @@ const Journal = () => {
   };
 
   return (
-    <section className="relative mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
-      <header className="mb-8 sm:mb-10">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-muted-foreground mb-3">
+    <section className="journal-page relative mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+      <header className="mb-8 sm:mb-10 relative">
+        <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-muted-foreground mb-4">
           ▚ Section · Journal ▚
         </p>
-        <h1 className="font-display text-[clamp(2.5rem,8vw,5rem)] leading-[0.9] tracking-tight text-riso-ink">
-          Travel <span className="text-riso-cyan">Journal</span>
+        <h1 className="font-display leading-[0.88] tracking-tight text-riso-ink">
+          <span className="block text-[clamp(2.5rem,8vw,5rem)] text-chroma-lg">Travel Journal</span>
         </h1>
-        <p className="mt-4 max-w-2xl font-mono text-base text-foreground/75 leading-relaxed">
-          Real trip notes from travelers who played each city edition — plus your own stamps after
-          you finish a run.
+        <p className="mt-5 max-w-2xl font-mono text-sm sm:text-base text-foreground/75 leading-relaxed">
+          After you journal, finish a Print Edition, or use AI Create, sign in to{" "}
+          <span className="bg-riso-yellow px-1.5 -skew-x-3 inline-block font-semibold text-riso-ink">
+            auto-archive
+          </span>{" "}
+          your trips. Paste a public Instagram link to import.
         </p>
       </header>
+
+      <InstagramImport />
 
       <div className="flex flex-wrap gap-2 mb-6">
         <button
           type="button"
-          onClick={() => setTab("community")}
+          onClick={() => switchTab("mine")}
+          className={`sticker-sm px-4 py-2 rounded-full font-display uppercase text-xs tracking-wider ${
+            tab === "mine" ? "bg-riso-violet text-background" : "bg-background text-riso-ink"
+          }`}
+        >
+          My trips ({user ? archives.length : "—"})
+        </button>
+        <button
+          type="button"
+          onClick={() => switchTab("community")}
           className={`sticker-sm px-4 py-2 rounded-full font-display uppercase text-xs tracking-wider ${
             tab === "community" ? "bg-riso-cyan text-riso-ink" : "bg-background text-riso-ink"
           }`}
@@ -83,7 +174,7 @@ const Journal = () => {
         </button>
         <button
           type="button"
-          onClick={() => setTab("stamps")}
+          onClick={() => switchTab("stamps")}
           className={`sticker-sm px-4 py-2 rounded-full font-display uppercase text-xs tracking-wider ${
             tab === "stamps" ? "bg-riso-pink text-background" : "bg-background text-riso-ink"
           }`}
@@ -91,6 +182,69 @@ const Journal = () => {
           Your stamps ({runs.length})
         </button>
       </div>
+
+      {tab === "mine" && (
+        <div className="space-y-6">
+          {authLoading ? (
+            <div className="flex justify-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-riso-pink" />
+            </div>
+          ) : !user ? (
+            <div className="riso-card text-center max-w-lg mx-auto">
+              <MapPin className="h-10 w-10 mx-auto text-riso-violet/50 mb-3" />
+              <p className="font-display text-xl text-riso-ink">Sign in to save trips</p>
+              <p className="mt-2 font-mono text-sm text-muted-foreground">
+                Your journals, AI Create photos, and imports become travel entries here.
+              </p>
+              <Link to="/login" className="riso-btn-primary mt-6 inline-flex">
+                Sign in
+              </Link>
+            </div>
+          ) : archivesLoading && archives.length === 0 ? (
+            <div className="flex justify-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-riso-pink" />
+            </div>
+          ) : archives.length === 0 ? (
+            <div className="riso-card text-center max-w-lg mx-auto">
+              <BookOpen className="h-10 w-10 mx-auto text-riso-cyan/50 mb-3" />
+              <p className="font-display text-xl text-riso-ink">No trips yet</p>
+              <p className="mt-2 font-mono text-sm text-muted-foreground">
+                Import Instagram, use AI Create, or add a manual archive to start your journal.
+              </p>
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                <Link to="/archive/new" className="riso-btn-secondary">
+                  <Plus className="h-4 w-4" />
+                  New entry
+                </Link>
+                <Link to="/games/ai-create" className="riso-btn-primary">
+                  <Sparkles className="h-4 w-4" />
+                  AI Create
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex justify-end">
+                <Link to="/archive/new" className="riso-btn-secondary text-xs py-2 px-4">
+                  <Plus className="h-3.5 w-3.5" />
+                  New entry
+                </Link>
+              </div>
+              <ul className="grid gap-6 sm:grid-cols-2 lg:gap-8">
+                {archives.map((arch, i) => (
+                  <li key={arch.id} className={i % 2 === 1 ? "sm:rotate-1" : "sm:-rotate-1"}>
+                    <TravelArchiveCard
+                      archive={arch}
+                      thumbUrl={thumbs[arch.id]}
+                      onDeleted={() => void loadArchives({ background: true })}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+      )}
 
       {tab === "community" && (
         <>

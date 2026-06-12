@@ -7,27 +7,302 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          id: string
+          display_name: string | null
+          avatar_url: string | null
+          created_at: string
+        }
+        Insert: {
+          id: string
+          display_name?: string | null
+          avatar_url?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          display_name?: string | null
+          avatar_url?: string | null
+          created_at?: string
+        }
+      }
+      user_archives: {
+        Row: {
+          id: string
+          user_id: string
+          title: string | null
+          journal_text: string
+          summary_json: Json | null
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title?: string | null
+          journal_text?: string
+          summary_json?: Json | null
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string | null
+          journal_text?: string
+          summary_json?: Json | null
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      archive_media: {
+        Row: {
+          id: string
+          archive_id: string
+          user_id: string
+          storage_path: string
+          sort_order: number
+          caption: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          archive_id: string
+          user_id: string
+          storage_path: string
+          sort_order?: number
+          caption?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          archive_id?: string
+          user_id?: string
+          storage_path?: string
+          sort_order?: number
+          caption?: string | null
+          created_at?: string
+        }
+      }
+      twin_personas: {
+        Row: {
+          id: string
+          user_id: string
+          archive_id: string
+          display_name: string
+          bio_short: string | null
+          system_prompt: string
+          traits_json: Json
+          is_active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          archive_id: string
+          display_name: string
+          bio_short?: string | null
+          system_prompt: string
+          traits_json?: Json
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          archive_id?: string
+          display_name?: string
+          bio_short?: string | null
+          system_prompt?: string
+          traits_json?: Json
+          is_active?: boolean
+          created_at?: string
+        }
+      }
+      slack_connections_safe: {
+        Row: {
+          id: string
+          user_id: string
+          team_id: string
+          team_name: string | null
+          slack_user_id: string
+          scopes: string | null
+          connected_at: string
+        }
+        Insert: Record<string, never>
+        Update: Record<string, never>
+      }
+      slack_connections: {
+        Row: {
+          id: string
+          user_id: string
+          team_id: string
+          team_name: string | null
+          slack_user_id: string
+          access_token: string
+          scopes: string | null
+          connected_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          team_id: string
+          team_name?: string | null
+          slack_user_id: string
+          access_token: string
+          scopes?: string | null
+          connected_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          team_id?: string
+          team_name?: string | null
+          slack_user_id?: string
+          access_token?: string
+          scopes?: string | null
+          connected_at?: string
+        }
+      }
+      slack_drafts: {
+        Row: {
+          id: string
+          user_id: string
+          persona_id: string | null
+          team_id: string
+          channel_id: string
+          thread_ts: string | null
+          trigger_text: string
+          draft_text: string
+          status: string
+          slack_message_ts: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          persona_id?: string | null
+          team_id: string
+          channel_id: string
+          thread_ts?: string | null
+          trigger_text?: string
+          draft_text?: string
+          status?: string
+          slack_message_ts?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          persona_id?: string | null
+          team_id?: string
+          channel_id?: string
+          thread_ts?: string | null
+          trigger_text?: string
+          draft_text?: string
+          status?: string
+          slack_message_ts?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      play_danmaku: {
+        Row: {
+          id: string
+          message: string
+          color: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          message: string
+          color?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          message?: string
+          color?: string
+          created_at?: string
+        }
+      }
+      community_games: {
+        Row: {
+          id: string
+          user_id: string
+          archive_id: string | null
+          title: string
+          author_name: string | null
+          tagline: string | null
+          template_id: string | null
+          engine: string | null
+          spec: Json
+          cover_path: string | null
+          upvote_count: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          archive_id?: string | null
+          title: string
+          author_name?: string | null
+          tagline?: string | null
+          template_id?: string | null
+          engine?: string | null
+          spec?: Json
+          cover_path?: string | null
+          upvote_count?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          archive_id?: string | null
+          title?: string
+          author_name?: string | null
+          tagline?: string | null
+          template_id?: string | null
+          engine?: string | null
+          spec?: Json
+          cover_path?: string | null
+          upvote_count?: number
+          created_at?: string
+        }
+      }
+      community_game_upvotes: {
+        Row: {
+          game_id: string
+          user_id: string
+          created_at: string
+        }
+        Insert: {
+          game_id: string
+          user_id: string
+          created_at?: string
+        }
+        Update: {
+          game_id?: string
+          user_id?: string
+          created_at?: string
+        }
+      }
     }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+    Views: Record<string, never>
+    Functions: Record<string, never>
+    Enums: Record<string, never>
+    CompositeTypes: Record<string, never>
   }
 }
 
@@ -113,43 +388,3 @@ export type TablesUpdate<
       ? U
       : never
     : never
-
-export type Enums<
-  DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
-> = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
-
-export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
-> = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
-
-export const Constants = {
-  public: {
-    Enums: {},
-  },
-} as const

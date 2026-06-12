@@ -87,7 +87,7 @@ export function ComingSoon({
                 coming soon ✦
               </p>
               <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.25em] opacity-80">
-                Travel Bug Press · Riso Edition
+                Mnemo Press · Riso Edition
               </p>
             </div>
           </div>

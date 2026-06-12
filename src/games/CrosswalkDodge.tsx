@@ -3,15 +3,18 @@ import { GameCountdown } from "./GameCountdown";
 import { GameHUD } from "./GameHUD";
 import { useKeyboard, usePopBursts } from "./PopBurst";
 import { useGameLoop } from "./useGameLoop";
+import { bumpCombo, difficultyRamp, resetCombo, spawnInterval } from "./gameUtils";
+import { EditionPlayShell } from "./EditionPlayShell";
+import { EditionSprite, editionSpriteSrc } from "./EditionSprite";
 import type { EditionGameProps } from "./types";
 
 const LANES = [20, 35, 50, 65, 80];
-const CAR_EMOJI = "🚗";
-const GAME_SECONDS = 35;
+const GAME_SECONDS = 40;
+const LIGHT_CYCLE_MS = 6000;
 
 type Car = { id: number; lane: number; x: number; speed: number };
 
-export function CrosswalkDodge({ onEnd, paused = false }: EditionGameProps) {
+export function CrosswalkDodge({ edition, onEnd, paused = false }: EditionGameProps) {
   const [ready, setReady] = useState(false);
   const [lane, setLane] = useState(2);
   const [cars, setCars] = useState<Car[]>([]);
@@ -22,7 +25,14 @@ export function CrosswalkDodge({ onEnd, paused = false }: EditionGameProps) {
   const [playerX, setPlayerX] = useState(6);
   const [invincible, setInvincible] = useState(0);
   const [crossFlash, setCrossFlash] = useState(false);
+  const [holding, setHolding] = useState(false);
+  const [combo, setCombo] = useState(resetCombo);
+  const [lightPhase, setLightPhase] = useState<"walk" | "wait">("walk");
   const endedRef = useRef(false);
+  const elapsedRef = useRef(0);
+  const comboRef = useRef(resetCombo());
+  const holdingRef = useRef(false);
+  const lightRef = useRef<"walk" | "wait">("walk");
   const idRef = useRef(0);
   const laneRef = useRef(lane);
   const playerXRef = useRef(playerX);
@@ -36,6 +46,21 @@ export function CrosswalkDodge({ onEnd, paused = false }: EditionGameProps) {
   useEffect(() => { playerXRef.current = playerX; }, [playerX]);
   useEffect(() => { invincibleRef.current = invincible; }, [invincible]);
   useEffect(() => { statsRef.current = { score, misses }; }, [score, misses]);
+  useEffect(() => { holdingRef.current = holding; }, [holding]);
+  useEffect(() => { comboRef.current = combo; }, [combo]);
+  useEffect(() => { lightRef.current = lightPhase; }, [lightPhase]);
+
+  useEffect(() => {
+    if (!active) return;
+    const flip = () =>
+      setLightPhase((p) => {
+        const next = p === "walk" ? "wait" : "walk";
+        lightRef.current = next;
+        return next;
+      });
+    const id = window.setInterval(flip, LIGHT_CYCLE_MS);
+    return () => window.clearInterval(id);
+  }, [active]);
 
   const moveLane = useCallback((dir: -1 | 1) => {
     setLane((l) => Math.max(0, Math.min(4, l + dir)));
@@ -68,18 +93,22 @@ export function CrosswalkDodge({ onEnd, paused = false }: EditionGameProps) {
 
   useGameLoop(active, (dt) => {
     const t = dt / 16.67;
+    elapsedRef.current += dt;
+    const ramp = difficultyRamp(elapsedRef.current, GAME_SECONDS * 1000);
 
     spawnAccRef.current += dt;
-    if (spawnAccRef.current > 750) {
+    const spawnMs = lightRef.current === "wait" ? spawnInterval(520, ramp, 280) : 1400;
+    if (spawnAccRef.current > spawnMs) {
       spawnAccRef.current = 0;
       idRef.current += 1;
+      const lane = Math.floor(Math.random() * 5);
       setCars((prev) => [
         ...prev,
         {
           id: idRef.current,
-          lane: Math.floor(Math.random() * 5),
+          lane,
           x: -14,
-          speed: 0.45 + Math.random() * 0.35,
+          speed: 0.5 + ramp * 0.35 + Math.random() * 0.2,
         },
       ]);
     }
@@ -91,9 +120,11 @@ export function CrosswalkDodge({ onEnd, paused = false }: EditionGameProps) {
         if (x > 118) continue;
         if (
           invincibleRef.current <= 0 &&
-          Math.abs(x - playerXRef.current) < 10 &&
+          Math.abs(x - playerXRef.current) < 12 &&
           c.lane === laneRef.current
         ) {
+          comboRef.current = resetCombo();
+          setCombo(resetCombo());
           setMisses((m) => m + 1);
           invincibleRef.current = 50;
           setInvincible(50);
@@ -105,15 +136,22 @@ export function CrosswalkDodge({ onEnd, paused = false }: EditionGameProps) {
       return next;
     });
 
+    const canSprint = lightRef.current === "walk" || holdingRef.current;
+    const speed = canSprint ? 0.22 + ramp * 0.12 : 0.06;
+
     setPlayerX((x) => {
-      const nx = x + 0.14 * t;
-      if (nx >= 90) {
+      const nx = x + speed * t;
+      if (nx >= 92) {
         setCrossings((c) => c + 1);
-        setScore((s) => s + 35);
+        const cmb = bumpCombo(comboRef.current);
+        comboRef.current = cmb;
+        setCombo(cmb);
+        const pts = 30 * cmb.multiplier;
+        setScore((s) => s + pts);
         setCrossFlash(true);
         window.setTimeout(() => setCrossFlash(false), 350);
-        burst(90, LANES[laneRef.current], "+35");
-        return 6;
+        burst(90, LANES[laneRef.current], `+${pts}`);
+        return 5;
       }
       return nx;
     });
@@ -121,16 +159,33 @@ export function CrosswalkDodge({ onEnd, paused = false }: EditionGameProps) {
     setInvincible((i) => Math.max(0, i - t));
   });
 
+  const carSrc = editionSpriteSrc(edition, "obstacle");
+  const playerSrc = editionSpriteSrc(edition, "player");
+
   return (
-    <div className="relative w-full min-h-[100dvh] h-[100dvh] bg-[#1a1030] overflow-hidden">
+    <EditionPlayShell edition={edition}>
+      <div className="relative h-full overflow-hidden">
       {!ready && <GameCountdown onDone={() => setReady(true)} />}
       <PopLayer />
 
+      <div
+        className={`absolute top-12 left-1/2 -translate-x-1/2 z-20 sticker-sm px-4 py-1 font-mono text-[10px] uppercase tracking-widest ${
+          lightPhase === "walk" ? "bg-riso-lime text-riso-ink" : "bg-riso-pink text-background"
+        }`}
+      >
+        {lightPhase === "walk" ? "🟢 Walk — cross now" : "🔴 Wait — cars incoming"}
+      </div>
+
       <GameHUD
-        hint="↑↓ change lane · reach the right side · dodge cars"
+        hint="↑↓ lane · hold CROSS to sprint · green light = safe"
         pills={[
           { key: "time", label: `⏱ ${timeLeft}s` },
           { key: "score", label: `${score} pts`, className: "bg-riso-yellow text-riso-ink" },
+          {
+            key: "combo",
+            label: combo.count > 0 ? `×${combo.multiplier}` : "combo",
+            className: "bg-riso-cyan/90 text-riso-ink",
+          },
           { key: "cross", label: `🚶 ${crossings}`, className: "bg-riso-cyan/90 text-riso-ink" },
           { key: "miss", label: `✗ ${misses}`, className: "bg-riso-pink/90 text-background" },
         ]}
@@ -164,19 +219,23 @@ export function CrosswalkDodge({ onEnd, paused = false }: EditionGameProps) {
       {cars.map((c) => (
         <div
           key={c.id}
-          className="absolute text-4xl sm:text-5xl select-none pointer-events-none z-10"
+          className="absolute select-none pointer-events-none z-10"
           style={{
             left: `${c.x}%`,
             top: `${LANES[c.lane]}%`,
             transform: "translate(-50%, -50%)",
           }}
         >
-          {CAR_EMOJI}
+          {carSrc ? (
+            <EditionSprite src={carSrc} variant="obstacle" size={52} />
+          ) : (
+            <span className="text-4xl sm:text-5xl">🚗</span>
+          )}
         </div>
       ))}
 
       <div
-        className={`absolute text-4xl z-30 game-lane-transition drop-shadow-lg ${
+        className={`absolute z-30 game-lane-transition drop-shadow-lg ${
           invincible > 0 ? "opacity-60 animate-pulse" : ""
         }`}
         style={{
@@ -185,25 +244,50 @@ export function CrosswalkDodge({ onEnd, paused = false }: EditionGameProps) {
           transform: "translate(-50%, -50%)",
         }}
       >
-        🚶
+        {playerSrc ? (
+          <EditionSprite src={playerSrc} variant="player" size={48} />
+        ) : (
+          <span className="text-4xl">🚶</span>
+        )}
       </div>
 
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-3 z-40 px-4">
+      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-40 px-3">
         <button
           type="button"
           onPointerDown={() => moveLane(-1)}
-          className="sticker flex-1 max-w-[140px] bg-background text-riso-ink py-4 font-display text-lg active:scale-95 min-h-[52px]"
+          className="sticker flex-1 max-w-[100px] bg-background text-riso-ink py-4 font-display text-sm active:scale-95 min-h-[52px]"
         >
-          ↑ Lane
+          ↑
+        </button>
+        <button
+          type="button"
+          onPointerDown={() => {
+            holdingRef.current = true;
+            setHolding(true);
+          }}
+          onPointerUp={() => {
+            holdingRef.current = false;
+            setHolding(false);
+          }}
+          onPointerCancel={() => {
+            holdingRef.current = false;
+            setHolding(false);
+          }}
+          className={`sticker flex-[1.4] max-w-[160px] py-4 font-display text-sm uppercase tracking-wider active:scale-95 min-h-[52px] ${
+            holding ? "bg-riso-lime text-riso-ink" : "bg-riso-yellow text-riso-ink"
+          }`}
+        >
+          {holding ? "Crossing…" : "Hold · Cross"}
         </button>
         <button
           type="button"
           onPointerDown={() => moveLane(1)}
-          className="sticker flex-1 max-w-[140px] bg-background text-riso-ink py-4 font-display text-lg active:scale-95 min-h-[52px]"
+          className="sticker flex-1 max-w-[100px] bg-background text-riso-ink py-4 font-display text-sm active:scale-95 min-h-[52px]"
         >
-          ↓ Lane
+          ↓
         </button>
       </div>
-    </div>
+      </div>
+    </EditionPlayShell>
   );
 }

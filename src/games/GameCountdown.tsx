@@ -21,7 +21,11 @@ export function GameCountdown({ onDone }: { onDone: () => void }) {
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-riso-ink/40 backdrop-blur-sm pointer-events-none">
       <span
         key={idx}
-        className="font-display text-6xl sm:text-8xl text-white drop-shadow-[4px_4px_0_var(--riso-pink)] animate-in zoom-in-50 fade-in duration-300"
+        className="font-tech text-5xl sm:text-7xl text-white animate-in zoom-in-50 fade-in duration-300"
+        style={{
+          textShadow:
+            "0 0 24px oklch(0.78 0.16 220 / 0.55), 0 0 48px oklch(0.72 0.25 0 / 0.25), 4px 4px 0 var(--riso-pink)",
+        }}
       >
         {STEPS[idx]}
       </span>

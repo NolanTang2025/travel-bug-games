@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Camera,
@@ -11,6 +11,27 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { autoArchiveFromAiCreate } from "@/lib/autoArchive";
+import { publishCommunityGame, writeAiGameSession } from "@/lib/communityGamesApi";
+import { persistPlayPhotos } from "@/lib/resolvePlayPhotos";
+import { compressPhotosForAi } from "@/lib/compressImageForAi";
+import { createVariationSeed, pickPhotoIndex } from "@/lib/gameHint";
+import { pickTemplateWithVariation } from "@/lib/pickTemplateFromHint";
+import { GameGeneratingOverlay } from "@/components/GameGeneratingOverlay";
+import { SignInGateNote } from "@/components/SignInGateNote";
+import { useAuth } from "@/hooks/useAuth";
+import { gamePlayPath } from "@/lib/gamePlayRoute";
+import { BRAND_NAME } from "@/lib/brand";
+import {
+  clearPendingGenerate,
+  getPendingGenerate,
+  loadAiCreateDraft,
+  saveAiCreateDraft,
+  saveGeneratedGame,
+  setPendingGenerate,
+  setLoginReturn,
+} from "@/lib/creativeStorage";
+import type { GameTemplateId } from "@/games/templates/types";
 
 const MAX_PHOTOS = 6;
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
@@ -251,10 +272,16 @@ function DiaryPhotoSpread({
 
 const AIGameGenerator = () => {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [photos, setPhotos] = useState<DiaryPhoto[]>([]);
   const [hint, setHint] = useState("");
   const [loading, setLoading] = useState(false);
+  const [genDone, setGenDone] = useState(false);
+  const [suggestedTemplateId, setSuggestedTemplateId] = useState<GameTemplateId | undefined>();
   const [dragging, setDragging] = useState(false);
+  const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
+  const draftLoaded = useRef(false);
+  const pendingGenerateRan = useRef(false);
 
   const diaryDate = useMemo(() => formatDiaryDate(), []);
   const entryNo = useMemo(
@@ -307,39 +334,143 @@ const AIGameGenerator = () => {
     setPhotos((prev) => prev.filter((p) => p.id !== id));
   };
 
-  const generate = async () => {
+  useEffect(() => {
+    if (draftLoaded.current) return;
+    draftLoaded.current = true;
+    const draft = loadAiCreateDraft();
+    if (!draft) return;
+    if (draft.photos.length) setPhotos(draft.photos);
+    if (draft.hint) setHint(draft.hint);
+    setDraftSavedAt(draft.updatedAt);
+    toast.message("Draft restored from this device");
+  }, []);
+
+  useEffect(() => {
+    if (!draftLoaded.current) return;
+    const timer = window.setTimeout(() => {
+      if (!photos.length && !hint.trim()) return;
+      const ok = saveAiCreateDraft({ photos, hint });
+      if (ok) setDraftSavedAt(Date.now());
+    }, 600);
+    return () => window.clearTimeout(timer);
+  }, [photos, hint]);
+
+  const generate = useCallback(async () => {
     if (!photos.length) return toast.error("Paste at least one travel photo into your diary");
+    if (!user) {
+      saveAiCreateDraft({ photos, hint });
+      setPendingGenerate("ai-create");
+      setLoginReturn("/games/ai-create");
+      toast.message("Sign in first — draft saved on this device");
+      navigate("/login", { state: { from: "/games/ai-create" } });
+      return;
+    }
+    const variationSeed = createVariationSeed();
+    const suggested = pickTemplateWithVariation(hint, variationSeed, { topN: 3 });
+    setSuggestedTemplateId(suggested);
+    setGenDone(false);
     setLoading(true);
     try {
       const dataUrls = photos.map((p) => p.dataUrl);
+      const aiPhotos = await compressPhotosForAi(dataUrls);
+      const photoIndex = pickPhotoIndex(variationSeed, aiPhotos.length);
       const { data, error } = await supabase.functions.invoke("generate-game", {
-        body: { photos: dataUrls, photo: dataUrls[0], hint },
+        body: {
+          photos: aiPhotos,
+          hint,
+          suggestedTemplateId: suggested,
+          variationSeed,
+          photoIndex,
+        },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      sessionStorage.setItem(
-        "ai_game",
-        JSON.stringify({ ...data, photos: dataUrls, photo: dataUrls[0] }),
-      );
-      navigate("/games/ai-play");
+      setGenDone(true);
+      await new Promise((r) => setTimeout(r, 380));
+      const published = await publishCommunityGame({
+        title: String(data.title ?? "Trip game"),
+        tagline: String(data.tagline ?? ""),
+        templateId: String(data.templateId ?? suggested),
+        engine: String(data.engine ?? ""),
+        spec: data as Record<string, unknown>,
+        photos: dataUrls,
+        hint,
+      });
+      const communityGameId = published?.id ?? null;
+      const coverUrl = published?.coverUrl ?? null;
+      const sessionPhotos = coverUrl
+        ? [coverUrl, ...dataUrls.slice(1).filter((p) => !p.startsWith("data:"))]
+        : dataUrls.filter((p) => !p.startsWith("data:"));
+
+      await persistPlayPhotos(dataUrls, communityGameId);
+
+      const payload = {
+        ...data,
+        photos: sessionPhotos.length ? sessionPhotos : undefined,
+        photo: sessionPhotos[0] ?? dataUrls[0],
+        hint,
+        communityGameId: communityGameId ?? undefined,
+        source: "ai-create" as const,
+      };
+      writeAiGameSession(payload);
+      const saved = saveGeneratedGame({
+        hint,
+        photos: dataUrls,
+        source: "ai-create",
+        payload: { ...payload, photos: dataUrls, photo: dataUrls[0] },
+      });
+      if (saved) toast.message("Saved to this device");
+      const archiveId = await autoArchiveFromAiCreate(photos, hint);
+      if (archiveId) {
+        toast.success("Saved to your Journal", {
+          description: "Remix anytime or finish the AI summary from your trip page.",
+          action: {
+            label: "Open entry",
+            onClick: () => navigate(`/archive/${archiveId}`),
+          },
+        });
+      } else {
+        toast.success("Game ready — play, then copy your caption for Story");
+      }
+      navigate(gamePlayPath(communityGameId), {
+        state: { reload: Date.now(), photos: dataUrls },
+      });
     } catch (e: unknown) {
       console.error(e);
       const msg = e instanceof Error ? e.message : "Failed to generate";
-      if (msg.includes("Rate")) toast.error("Too many requests — try again in a moment");
-      else if (msg.includes("Payment")) toast.error("AI credits exhausted. Add funds in Workspace settings.");
+      if (msg.includes("Rate") || msg.includes("频繁")) toast.error("Too many requests — try again later");
+      else if (msg.includes("Payment") || msg.includes("余额")) toast.error("AI quota exceeded — check moonshot_api_key");
       else toast.error(msg);
     } finally {
       setLoading(false);
+      setGenDone(false);
+      setSuggestedTemplateId(undefined);
     }
-  };
+  }, [photos, hint, user, navigate]);
+
+  useEffect(() => {
+    if (authLoading || !user || pendingGenerateRan.current || loading) return;
+    if (getPendingGenerate() !== "ai-create" || !photos.length) return;
+    pendingGenerateRan.current = true;
+    clearPendingGenerate();
+    void generate();
+  }, [authLoading, user, photos.length, loading, generate]);
 
   return (
+    <>
+      <GameGeneratingOverlay
+        open={loading}
+        done={genDone}
+        photoPreview={photos[0]?.dataUrl}
+        hint={hint}
+        suggestedTemplateId={suggestedTemplateId}
+      />
     <section className="relative mx-auto w-full max-w-[1100px] px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
       <header className="mb-8 sm:mb-10">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.35em] text-muted-foreground mb-2">
-              ▚ Travel Bug Journal · Vol. {entryNo} ▚
+              ▚ {BRAND_NAME} Journal · Vol. {entryNo} ▚
             </p>
             <h1 className="font-display text-[clamp(2rem,6vw,3.5rem)] leading-[0.95] tracking-tight text-riso-ink">
               Turn today&apos;s page
@@ -466,7 +597,9 @@ const AIGameGenerator = () => {
         />
       </div>
 
-      <div className="mt-10 flex flex-col items-center gap-4">
+      <div className="mt-10 flex flex-col items-center gap-4 max-w-md mx-auto w-full">
+        {!user && <SignInGateNote returnTo="/games/ai-create" className="w-full" />}
+
         <button
           type="button"
           onClick={generate}
@@ -482,7 +615,7 @@ const AIGameGenerator = () => {
             {loading ? (
               <>
                 <Loader2 className="h-5 w-5 animate-spin" />
-                Riso press is running…
+                Pressing…
               </>
             ) : (
               <>
@@ -497,10 +630,13 @@ const AIGameGenerator = () => {
         <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground text-center max-w-sm">
           {photos.length === 0
             ? "Paste at least one photo on the left page to unlock the press"
-            : `Printing from ${photos.length} photo${photos.length === 1 ? "" : "s"} · playable arcade in ~10s`}
+            : user
+              ? `Generate from ${photos.length} photo${photos.length === 1 ? "" : "s"} · draft auto-saved${draftSavedAt ? ` · ${new Date(draftSavedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}` : ""}`
+              : `Generate from ${photos.length} photo${photos.length === 1 ? "" : "s"} · sign in required · drafts save locally`}
         </p>
       </div>
     </section>
+    </>
   );
 };
 

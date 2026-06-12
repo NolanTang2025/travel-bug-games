@@ -1,5 +1,12 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Bug, BookOpen, Sparkles, Users, Zap } from "lucide-react";
+import { BookOpen, Bug, ClipboardPaste, Flame, Sparkles, UserCircle, Users, Zap } from "lucide-react";
+import { HeaderUserChip } from "@/components/HeaderUserChip";
+import { FeatureBetaBadge } from "@/components/FeatureBetaBadge";
+import { BRAND_FULL, BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
+import { isEmbedMode } from "@/lib/embedMode";
+import { NAV_BETA_FEATURES } from "@/lib/launchGate";
+import { DEV_MOCK_AUTH_ENABLED } from "@/lib/devMockAuth";
+import { useAuth } from "@/hooks/useAuth";
 
 type NavItem = {
   to: string;
@@ -8,22 +15,34 @@ type NavItem = {
   exact?: boolean;
 };
 
-const navItems: NavItem[] = [
+/** Full sitemap — footer & deep links */
+export const siteNavItems: NavItem[] = [
   { to: "/", label: "Home", icon: Zap, exact: true },
   { to: "/games/bug-forest", label: "Bug Forest", icon: Bug },
   { to: "/games/ai-create", label: "AI Create", icon: Sparkles },
   { to: "/journal", label: "Journal", icon: BookOpen },
+  { to: "/twin", label: "Twin", icon: UserCircle },
+  { to: "/play", label: "Paste post", icon: ClipboardPaste },
+  { to: "/trends", label: "Viral lab", icon: Flame },
   { to: "/games/join", label: "Join", icon: Users },
+];
+
+/** Slim header — primary journey: create → paste → journal */
+const headerNavItems: NavItem[] = [
+  { to: "/games/ai-create", label: "Create", icon: Sparkles },
+  { to: "/trends", label: "Trends", icon: Flame },
+  { to: "/play", label: "Paste post", icon: ClipboardPaste },
+  { to: "/journal", label: "Journal", icon: BookOpen },
 ];
 
 function MarqueeTicker() {
   const items = [
-    "★ TRAVEL BUG GAMES",
-    "✷ CATCH · DODGE · REMEMBER",
-    "❖ RISO PRESS EDITION",
-    "✦ PLAY ANYWHERE",
-    "✸ POCKET ARCADE",
-    "◈ EST. 2025",
+    `★ ${BRAND_FULL}`,
+    "✷ AI-NATIVE · INTERACTIVE",
+    "❖ INTERACTIVE SOCIAL",
+    "✦ DRAFTS AUTO-SAVED LOCALLY",
+    "✸ ONE-TAP PLAYABLE GAMES",
+    "◈ MNEMO 2025",
   ];
   const row = [...items, ...items, ...items];
   return (
@@ -42,8 +61,22 @@ function MarqueeTicker() {
   );
 }
 
+function navActive(pathname: string, to: string, exact?: boolean) {
+  if (exact) return pathname === to;
+  return pathname === to || pathname.startsWith(`${to}/`);
+}
+
 export function SiteShell() {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
+  const { user } = useAuth();
+
+  if (isEmbedMode(search)) {
+    return (
+      <div className="min-h-[100dvh] bg-black text-foreground">
+        <Outlet />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-paper text-foreground relative">
@@ -57,74 +90,60 @@ export function SiteShell() {
       />
 
       <header className="relative z-20 border-b-2 border-riso-ink bg-background">
-        <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-          <Link to="/" className="flex items-center gap-2.5 group">
+        <div className="mx-auto flex h-14 max-w-[1280px] items-center gap-4 px-4 sm:px-6 lg:px-8">
+          <Link to="/" className="flex shrink-0 items-center gap-2 group">
             <span
-              className="relative flex h-9 w-9 items-center justify-center rounded-full border-2 border-riso-ink bg-riso-pink text-background shadow-pop-sm transition-transform group-hover:rotate-[-8deg]"
+              className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-riso-ink bg-riso-pink font-display text-sm text-background shadow-pop-sm transition-transform group-hover:rotate-[-8deg]"
               aria-hidden
             >
-              <Bug className="h-4.5 w-4.5" strokeWidth={2.8} />
+              M
             </span>
-            <span className="font-display text-base sm:text-lg tracking-tight">
-              TRAVEL<span className="text-riso-pink">BUG</span>
-              <span className="text-muted-foreground">.games</span>
-            </span>
+            <span className="font-display text-lg tracking-tight text-riso-pink">{BRAND_NAME}</span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-1">
-            {navItems.map(({ to, label, exact }) => {
-              const isActive = exact ? pathname === to : pathname.startsWith(to);
+          <nav className="hidden sm:flex flex-1 items-center justify-center gap-0.5">
+            {headerNavItems.map(({ to, label, exact }) => {
+              const isActive = navActive(pathname, to, exact);
+              const betaFeature = NAV_BETA_FEATURES[to];
               return (
                 <Link
                   key={to}
                   to={to}
                   className={[
-                    "relative px-3 py-1.5 text-sm font-semibold tracking-tight transition-colors",
-                    "font-display uppercase",
+                    "px-3 py-1 text-sm font-display uppercase tracking-wide rounded-full transition-colors inline-flex items-center gap-1",
                     isActive
-                      ? "text-riso-ink"
-                      : "text-muted-foreground hover:text-riso-ink",
+                      ? "text-riso-ink bg-riso-yellow shadow-pop-sm"
+                      : "text-muted-foreground hover:text-riso-ink hover:bg-riso-yellow/40",
                   ].join(" ")}
                 >
                   {label}
-                  {isActive && (
-                    <span
-                      className="absolute left-2 right-2 -bottom-0.5 h-[3px] bg-riso-pink"
-                      aria-hidden
-                    />
-                  )}
+                  {betaFeature && <FeatureBetaBadge feature={betaFeature} />}
                 </Link>
               );
             })}
           </nav>
 
-          <Link
-            to="/games/ai-create"
-            className="sticker hidden sm:inline-flex items-center gap-2 rounded-full bg-riso-yellow px-4 py-2 text-sm font-display uppercase tracking-wide"
-          >
-            <Sparkles className="h-4 w-4" strokeWidth={2.6} />
-            Make a game
-          </Link>
-        </div>
-
-        <nav className="md:hidden flex border-t-2 border-riso-ink bg-background overflow-x-auto">
-          {navItems.map(({ to, label, icon: Icon, exact }) => {
-            const isActive = exact ? pathname === to : pathname.startsWith(to);
-            return (
-              <Link
-                key={to}
-                to={to}
-                className={[
-                  "flex-1 min-w-fit px-3 py-2 text-center text-[11px] font-display uppercase tracking-wider border-r-2 last:border-r-0 border-riso-ink/20 flex flex-col items-center gap-0.5",
-                  isActive ? "bg-riso-yellow text-riso-ink" : "text-muted-foreground",
-                ].join(" ")}
+          <div className="ml-auto flex items-center gap-2 shrink-0">
+            {DEV_MOCK_AUTH_ENABLED && (
+              <span
+                className="hidden sm:inline font-mono text-[9px] uppercase tracking-widest text-riso-violet bg-riso-violet/10 border border-riso-violet/30 rounded-full px-2 py-0.5"
+                title="VITE_DEV_MOCK_AUTH=true — UI preview only"
               >
-                <Icon className="h-4 w-4" strokeWidth={2.4} />
-                {label}
+                Demo login
+              </span>
+            )}
+            {user ? (
+              <HeaderUserChip user={user} />
+            ) : (
+              <Link
+                to="/login"
+                className="px-2.5 py-1 text-xs font-display uppercase tracking-wide text-muted-foreground hover:text-riso-ink"
+              >
+                Sign in
               </Link>
-            );
-          })}
-        </nav>
+            )}
+          </div>
+        </div>
       </header>
 
       <MarqueeTicker />
@@ -133,52 +152,72 @@ export function SiteShell() {
         <Outlet />
       </main>
 
-      <footer className="relative z-10 border-t-2 border-riso-ink bg-riso-ink text-background mt-16">
-        <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-10 grid gap-8 md:grid-cols-3">
+      <footer className="relative z-10 mt-16 border-t border-riso-cyan/25 bg-[oklch(0.08_0.02_270)] text-background">
+        <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-12 grid gap-10 md:grid-cols-3">
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-background bg-riso-pink">
-                <Bug className="h-4 w-4" strokeWidth={2.8} />
+            <div className="flex items-center gap-3 mb-4">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-riso-cyan/40 bg-riso-pink/90 font-tech text-xs">
+                M
               </span>
-              <span className="font-display text-lg">TRAVELBUG.games</span>
+              <div>
+                <span className="font-tech text-sm text-white">{BRAND_NAME}</span>
+                <p className="font-mono text-[9px] uppercase tracking-[0.22em] text-riso-cyan/80 mt-0.5">
+                  AI-native social
+                </p>
+              </div>
             </div>
-            <p className="font-mono text-xs text-background/70 leading-relaxed">
-              Pocket-sized games, risograph-printed travel journals, and tiny
-              worlds you build with AI. Est. somewhere on the road.
+            <p className="font-mono text-xs text-background/65 leading-relaxed max-w-sm">
+              {BRAND_TAGLINE}. Turn travel moments and social posts into playable, shareable memories.
             </p>
           </div>
           <div>
-            <p className="font-display uppercase text-xs tracking-[0.25em] text-riso-yellow mb-3">
-              Sections
+            <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-riso-cyan mb-4">
+              Navigate
             </p>
-            <ul className="space-y-2 font-mono text-sm">
-              {navItems.map(({ to, label }) => (
+            <ul className="space-y-2.5 font-mono text-sm">
+              {siteNavItems.map(({ to, label }) => {
+                const betaFeature = NAV_BETA_FEATURES[to];
+                return (
                 <li key={to}>
                   <Link
                     to={to}
-                    className="text-background/80 hover:text-riso-pink transition-colors"
+                    className="text-background/75 hover:text-riso-cyan transition-colors inline-flex items-center gap-2"
                   >
-                    → {label}
+                    <span className="text-riso-cyan/50">→</span>
+                    {label}
+                    {betaFeature && <FeatureBetaBadge feature={betaFeature} />}
                   </Link>
                 </li>
-              ))}
+                );
+              })}
+              {user && (
+                <li>
+                  <Link
+                    to="/profile"
+                    className="text-background/75 hover:text-riso-cyan transition-colors inline-flex items-center gap-2"
+                  >
+                    <span className="text-riso-cyan/50">→</span>
+                    Profile
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
           <div>
-            <p className="font-display uppercase text-xs tracking-[0.25em] text-riso-yellow mb-3">
-              Colophon
+            <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-riso-cyan mb-4">
+              System
             </p>
-            <p className="font-mono text-xs text-background/70 leading-relaxed">
-              Set in Archivo Black &amp; Space Grotesk.
+            <p className="font-mono text-xs text-background/65 leading-relaxed">
+              Orbitron · Exo 2 · JetBrains Mono
               <br />
-              Printed with pink, cyan &amp; yellow inks.
+              Riso palette · grain texture
               <br />
-              © 2025 Travel Bug Games.
+              © 2026 {BRAND_NAME}
             </p>
           </div>
         </div>
-        <div className="border-t-2 border-background/10 py-3 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-background/50">
-          ▚ made with grain &amp; glue ▚
+        <div className="border-t border-white/8 py-3.5 text-center font-mono text-[9px] uppercase tracking-[0.32em] text-background/45">
+          Mnemo Press · memory → playable content
         </div>
       </footer>
     </div>

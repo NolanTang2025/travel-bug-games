@@ -3,6 +3,9 @@ import { GameCountdown } from "./GameCountdown";
 import { GameHUD } from "./GameHUD";
 import { usePopBursts } from "./PopBurst";
 import { useGameLoop } from "./useGameLoop";
+import { bumpCombo, difficultyRamp, resetCombo, spawnInterval } from "./gameUtils";
+import { EditionPlayShell } from "./EditionPlayShell";
+import { EditionSprite, editionSpriteSrc } from "./EditionSprite";
 import type { EditionGameProps } from "./types";
 
 type Bike = { id: number; x: number; y: number; vx: number; vy: number };
@@ -10,7 +13,7 @@ type Bowl = { id: number; x: number; y: number; ttl: number };
 
 const GAME_SECONDS = 32;
 
-export function MotorbikeWeave({ onEnd, paused = false }: EditionGameProps) {
+export function MotorbikeWeave({ edition, onEnd, paused = false }: EditionGameProps) {
   const [ready, setReady] = useState(false);
   const [px, setPx] = useState(50);
   const [py, setPy] = useState(55);
@@ -20,7 +23,10 @@ export function MotorbikeWeave({ onEnd, paused = false }: EditionGameProps) {
   const [misses, setMisses] = useState(0);
   const [timeLeft, setTimeLeft] = useState(GAME_SECONDS);
   const [invincible, setInvincible] = useState(0);
+  const [combo, setCombo] = useState(resetCombo);
   const keys = useRef<Set<string>>(new Set());
+  const comboRef = useRef(resetCombo());
+  const elapsedRef = useRef(0);
   const posRef = useRef({ x: 50, y: 55 });
   const invincibleRef = useRef(0);
   const idRef = useRef(0);
@@ -84,6 +90,8 @@ export function MotorbikeWeave({ onEnd, paused = false }: EditionGameProps) {
 
   useGameLoop(active, (dt) => {
     const t = dt / 16.67;
+    elapsedRef.current += dt;
+    const ramp = difficultyRamp(elapsedRef.current, GAME_SECONDS * 1000);
     const k = keys.current;
     let { x, y } = posRef.current;
     const spd = 0.55;
@@ -99,7 +107,7 @@ export function MotorbikeWeave({ onEnd, paused = false }: EditionGameProps) {
     setPy(y);
 
     bikeAccRef.current += dt;
-    if (bikeAccRef.current > 1000) {
+    if (bikeAccRef.current > spawnInterval(1100, ramp, 550)) {
       bikeAccRef.current = 0;
       idRef.current += 1;
       const edge = Math.floor(Math.random() * 4);
@@ -126,7 +134,7 @@ export function MotorbikeWeave({ onEnd, paused = false }: EditionGameProps) {
     }
 
     bowlAccRef.current += dt;
-    if (bowlAccRef.current > 2400) {
+    if (bowlAccRef.current > spawnInterval(2200, ramp, 1200)) {
       bowlAccRef.current = 0;
       idRef.current += 1;
       setBowls((prev) => [
@@ -146,7 +154,9 @@ export function MotorbikeWeave({ onEnd, paused = false }: EditionGameProps) {
         const nx = b.x + b.vx * t;
         const ny = b.y + b.vy * t;
         if (nx < -18 || nx > 118 || ny < -18 || ny > 118) continue;
-        if (invincibleRef.current <= 0 && Math.hypot(nx - x, ny - y) < 8) {
+        if (invincibleRef.current <= 0 && Math.hypot(nx - x, ny - y) < 9) {
+          comboRef.current = resetCombo();
+          setCombo(resetCombo());
           setMisses((m) => m + 1);
           invincibleRef.current = 55;
           setInvincible(55);
@@ -163,9 +173,13 @@ export function MotorbikeWeave({ onEnd, paused = false }: EditionGameProps) {
       for (const bowl of prev) {
         const ttl = bowl.ttl - t;
         if (ttl <= 0) continue;
-        if (Math.hypot(bowl.x - x, bowl.y - y) < 11) {
-          setScore((s) => s + 22);
-          burst(bowl.x, bowl.y, "+22");
+        if (Math.hypot(bowl.x - x, bowl.y - y) < 12) {
+          const cmb = bumpCombo(comboRef.current);
+          comboRef.current = cmb;
+          setCombo(cmb);
+          const pts = 22 * cmb.multiplier;
+          setScore((s) => s + pts);
+          burst(bowl.x, bowl.y, `+${pts}`);
           continue;
         }
         next.push({ ...bowl, ttl });
@@ -176,10 +190,15 @@ export function MotorbikeWeave({ onEnd, paused = false }: EditionGameProps) {
     setInvincible((i) => Math.max(0, i - t));
   });
 
+  const phoSrc = editionSpriteSrc(edition, "target");
+  const scooterSrc = editionSpriteSrc(edition, "obstacle");
+  const walkerSrc = editionSpriteSrc(edition, "player");
+
   return (
+    <EditionPlayShell edition={edition}>
     <div
       ref={containerRef}
-      className="relative w-full min-h-[100dvh] h-[100dvh] overflow-hidden bg-[#f5e6d0] touch-none"
+      className="relative h-full overflow-hidden touch-none"
       onPointerMove={(e) => moveTo(e.clientX, e.clientY)}
       onPointerDown={(e) => moveTo(e.clientX, e.clientY)}
     >
@@ -190,7 +209,12 @@ export function MotorbikeWeave({ onEnd, paused = false }: EditionGameProps) {
         hint="Move cursor/finger · collect phở · dodge bikes"
         pills={[
           { key: "time", label: `⏱ ${timeLeft}s`, className: "bg-black/40 backdrop-blur text-white" },
-          { key: "score", label: `🍜 ${score}`, className: "bg-riso-orange text-riso-ink" },
+          { key: "score", label: `🍜 ${score}`, className: "bg-riso-yellow text-riso-ink" },
+          {
+            key: "combo",
+            label: combo.count > 0 ? `×${combo.multiplier}` : "combo",
+            className: "bg-riso-cyan/90 text-riso-ink",
+          },
           { key: "miss", label: `🏍️ ${misses}`, className: "bg-riso-pink/90 text-background" },
         ]}
       />
@@ -206,47 +230,57 @@ export function MotorbikeWeave({ onEnd, paused = false }: EditionGameProps) {
       {bowls.map((b) => (
         <div
           key={b.id}
-          className="absolute z-10 flex items-center justify-center rounded-full border-2 border-riso-orange/60 bg-riso-orange/20 pointer-events-none"
+          className="absolute z-10 pointer-events-none"
           style={{
             left: `${b.x}%`,
             top: `${b.y}%`,
-            width: 48,
-            height: 48,
             transform: "translate(-50%, -50%)",
             opacity: Math.min(1, b.ttl / 80),
           }}
         >
-          <span className="text-3xl">🍜</span>
+          {phoSrc ? (
+            <EditionSprite src={phoSrc} variant="target" size={48} />
+          ) : (
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-riso-orange/60 bg-riso-orange/20">
+              <span className="text-3xl">🍜</span>
+            </div>
+          )}
         </div>
       ))}
 
       {bikes.map((b) => (
         <div
           key={b.id}
-          className="absolute text-3xl sm:text-4xl pointer-events-none z-[8]"
+          className="absolute pointer-events-none z-[8]"
           style={{
             left: `${b.x}%`,
             top: `${b.y}%`,
             transform: "translate(-50%, -50%)",
           }}
         >
-          🏍️
+          {scooterSrc ? (
+            <EditionSprite src={scooterSrc} variant="obstacle" size={44} />
+          ) : (
+            <span className="text-3xl sm:text-4xl">🏍️</span>
+          )}
         </div>
       ))}
 
       <div
-        className={`absolute z-30 flex items-center justify-center rounded-full border-2 border-riso-ink bg-background/90 shadow-pop-sm ${
-          invincible > 0 ? "opacity-50 animate-pulse" : ""
-        }`}
+        className={`absolute z-30 ${invincible > 0 ? "opacity-50 animate-pulse" : ""}`}
         style={{
           left: `${px}%`,
           top: `${py}%`,
-          width: 44,
-          height: 44,
           transform: "translate(-50%, -50%)",
         }}
       >
-        <span className="text-2xl">🧍</span>
+        {walkerSrc ? (
+          <EditionSprite src={walkerSrc} variant="player" size={44} />
+        ) : (
+          <div className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-riso-ink bg-background/90 shadow-pop-sm">
+            <span className="text-2xl">🧍</span>
+          </div>
+        )}
       </div>
 
       <div className="absolute bottom-4 right-4 grid grid-cols-3 gap-1 z-40">
@@ -297,5 +331,6 @@ export function MotorbikeWeave({ onEnd, paused = false }: EditionGameProps) {
         <div />
       </div>
     </div>
+    </EditionPlayShell>
   );
 }

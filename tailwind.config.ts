@@ -14,10 +14,11 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['"Archivo Black"', '"Space Grotesk"', "system-ui", "sans-serif"],
-        sans: ['"Space Grotesk"', '"Inter"', "system-ui", "sans-serif"],
-        mono: ['"JetBrains Mono"', "ui-monospace", "monospace"],
-        hand: ['"Caveat"', '"Kalam"', "cursive"],
+        display: ['"Orbitron"', '"Exo 2"', '"PingFang SC"', '"Hiragino Sans GB"', '"Noto Sans SC"', "system-ui", "sans-serif"],
+        sans: ['"Exo 2"', '"Inter"', '"PingFang SC"', '"Hiragino Sans GB"', '"Noto Sans SC"', "system-ui", "sans-serif"],
+        mono: ['"JetBrains Mono"', '"SF Mono"', '"PingFang SC"', "ui-monospace", "monospace"],
+        hand: ['"Exo 2"', '"JetBrains Mono"', '"PingFang SC"', "system-ui", "sans-serif"],
+        tech: ['"Orbitron"', '"JetBrains Mono"', '"PingFang SC"', "system-ui", "sans-serif"],
       },
       colors: {
         border: "var(--border)",
@@ -53,14 +54,15 @@ export default {
           DEFAULT: "var(--card)",
           foreground: "var(--card-foreground)",
         },
+        /* oklch literals mirror :root in index.css — <alpha-value> enables /90 utilities */
         riso: {
-          pink: "var(--riso-pink)",
-          yellow: "var(--riso-yellow)",
-          cyan: "var(--riso-cyan)",
-          violet: "var(--riso-violet)",
-          orange: "var(--riso-orange)",
-          lime: "var(--riso-lime)",
-          ink: "var(--riso-ink)",
+          pink: "oklch(0.72 0.25 0 / <alpha-value>)",
+          yellow: "oklch(0.92 0.19 100 / <alpha-value>)",
+          cyan: "oklch(0.78 0.16 220 / <alpha-value>)",
+          violet: "oklch(0.55 0.25 300 / <alpha-value>)",
+          orange: "oklch(0.76 0.19 50 / <alpha-value>)",
+          lime: "oklch(0.88 0.22 130 / <alpha-value>)",
+          ink: "oklch(0.16 0.02 260 / <alpha-value>)",
         },
         sidebar: {
           DEFAULT: "var(--sidebar-background)",

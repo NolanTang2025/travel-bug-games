@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { GameCountdown } from "./GameCountdown";
 import { GameHUD } from "./GameHUD";
+import { GameCatchLane, GameFlyTarget, GameJarSprite } from "./GamePlayChrome";
+import { EditionPlayShell } from "./EditionPlayShell";
+import { EditionSprite, editionSpriteSrc } from "./EditionSprite";
 import { usePopBursts } from "./PopBurst";
 import { useGameLoop } from "./useGameLoop";
+import { bumpCombo, difficultyRamp, resetCombo, spawnInterval } from "./gameUtils";
+import { isEmbedMode } from "@/lib/embedMode";
 import type { EditionGameProps } from "./types";
 
 type SceneChoice = { label: string; wonder: number; line: string };
@@ -27,9 +33,12 @@ const SCENES: { text: string; choices: SceneChoice[] }[] = [
 type Firefly = { id: number; x: number; y: number; vx: number; vy: number };
 type RainDrop = { id: number; x: number; y: number; vy: number };
 
-const JAR_SECONDS = 28;
+const JAR_SECONDS = 32;
+const CATCHER_Y = 78;
 
-export function FireflyRPG({ onEnd, paused = false }: EditionGameProps) {
+export function FireflyRPG({ edition, onEnd, paused = false }: EditionGameProps) {
+  const location = useLocation();
+  const embed = isEmbedMode(location.search);
   const [ready, setReady] = useState(false);
   const [step, setStep] = useState(0);
   const [wonder, setWonder] = useState(0);
@@ -41,7 +50,13 @@ export function FireflyRPG({ onEnd, paused = false }: EditionGameProps) {
   const [timeLeft, setTimeLeft] = useState(JAR_SECONDS);
   const [fireflies, setFireflies] = useState<Firefly[]>([]);
   const [rain, setRain] = useState<RainDrop[]>([]);
+  const [catcherX, setCatcherX] = useState(50);
+  const [combo, setCombo] = useState(resetCombo);
   const idRef = useRef(0);
+  const catcherRef = useRef(50);
+  const comboRef = useRef(resetCombo());
+  const jarElapsedRef = useRef(0);
+  const containerRef = useRef<HTMLDivElement>(null);
   const endedRef = useRef(false);
   const statsRef = useRef({ wonder: 0, jarScore: 0, jarMisses: 0 });
   const spawnAccRef = useRef(0);
@@ -64,6 +79,11 @@ export function FireflyRPG({ onEnd, paused = false }: EditionGameProps) {
     idRef.current = 0;
     spawnAccRef.current = 0;
     rainAccRef.current = 0;
+    jarElapsedRef.current = 0;
+    comboRef.current = resetCombo();
+    setCombo(resetCombo());
+    setCatcherX(50);
+    catcherRef.current = 50;
   }, []);
 
   const pickChoice = (c: SceneChoice) => {
@@ -107,11 +127,22 @@ export function FireflyRPG({ onEnd, paused = false }: EditionGameProps) {
     ]);
   }, []);
 
+  const moveCatcher = useCallback((clientX: number) => {
+    const el = containerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = Math.max(15, Math.min(85, ((clientX - rect.left) / rect.width) * 100));
+    catcherRef.current = x;
+    setCatcherX(x);
+  }, []);
+
   useGameLoop(phase === "jar" && active, (dt) => {
     const t = dt / 16.67;
+    jarElapsedRef.current += dt;
+    const ramp = difficultyRamp(jarElapsedRef.current, JAR_SECONDS * 1000);
 
     spawnAccRef.current += dt;
-    if (spawnAccRef.current > 700) {
+    if (spawnAccRef.current > spawnInterval(750, ramp, 380)) {
       spawnAccRef.current = 0;
       spawnFirefly();
     }
@@ -122,16 +153,31 @@ export function FireflyRPG({ onEnd, paused = false }: EditionGameProps) {
       spawnRain();
     }
 
-    setFireflies((prev) =>
-      prev.map((f) => {
+    const cx = catcherRef.current;
+
+    setFireflies((prev) => {
+      const remaining: Firefly[] = [];
+      for (const f of prev) {
         let { x, y, vx, vy } = f;
         x += vx * t;
         y += vy * t;
         if (x < 8 || x > 92) vx *= -1;
         if (y < 12 || y > 68) vy *= -1;
-        return { ...f, x, y, vx, vy };
-      }),
-    );
+
+        const magnet = y > 55 && Math.abs(x - cx) < 14;
+        if (magnet) {
+          const cmb = bumpCombo(comboRef.current);
+          comboRef.current = cmb;
+          setCombo(cmb);
+          const pts = 12 * cmb.multiplier;
+          setJarScore((s) => s + pts);
+          burst(x, y, `+${pts}`);
+          continue;
+        }
+        remaining.push({ ...f, x, y, vx, vy });
+      }
+      return remaining;
+    });
 
     setRain((prev) => {
       const next: RainDrop[] = [];
@@ -167,14 +213,22 @@ export function FireflyRPG({ onEnd, paused = false }: EditionGameProps) {
   const catchFly = (id: number, x: number, y: number) => {
     if (phase !== "jar" || !active) return;
     setFireflies((prev) => prev.filter((f) => f.id !== id));
-    setJarScore((s) => s + 15);
-    burst(x, y, "+15");
+    const cmb = bumpCombo(comboRef.current);
+    comboRef.current = cmb;
+    setCombo(cmb);
+    const pts = 15 * cmb.multiplier;
+    setJarScore((s) => s + pts);
+    burst(x, y, `+${pts}`);
   };
+
+  const fireflySrc = editionSpriteSrc(edition, "target");
+  const rainSrc = editionSpriteSrc(edition, "obstacle");
 
   if (phase === "story") {
     const scene = SCENES[step];
     return (
-      <div className="relative w-full min-h-[100dvh] flex flex-col items-center justify-center p-6 text-white">
+      <EditionPlayShell edition={edition}>
+      <div className="relative h-full flex flex-col items-center justify-center p-6 text-white">
         {!ready && <GameCountdown onDone={() => setReady(true)} />}
 
         <div className="relative z-10 w-full max-w-md">
@@ -182,7 +236,7 @@ export function FireflyRPG({ onEnd, paused = false }: EditionGameProps) {
             Scene {step + 1} / {SCENES.length}
           </p>
           <div className="sticker bg-background text-riso-ink p-6 rotate--1">
-            <p className="font-hand text-2xl leading-snug mb-6 text-riso-ink">{scene.text}</p>
+            <p className="font-mono text-xl leading-snug mb-6 text-riso-ink tracking-wide">{scene.text}</p>
             {reply ? (
               <p className="font-mono text-sm text-riso-violet italic border-l-2 border-riso-pink pl-3">{reply}</p>
             ) : (
@@ -213,58 +267,85 @@ export function FireflyRPG({ onEnd, paused = false }: EditionGameProps) {
           </div>
         </div>
       </div>
+      </EditionPlayShell>
     );
   }
 
   return (
-    <div className="relative w-full min-h-[100dvh] h-[100dvh] overflow-hidden">
+    <EditionPlayShell edition={edition}>
+    <div
+      ref={containerRef}
+      className="relative h-full overflow-hidden touch-none"
+      onPointerMove={(e) => moveCatcher(e.clientX)}
+      onPointerDown={(e) => moveCatcher(e.clientX)}
+    >
       {!ready && <GameCountdown onDone={() => setReady(true)} />}
       <PopLayer />
 
       <GameHUD
-        hint="Tap glowing fireflies · drag jar zone to catch"
+        hint="Slide the jar · tap fireflies · stack combos"
         pills={[
           { key: "time", label: `⏱ ${timeLeft}s` },
           { key: "score", label: `✨ ${jarScore + wonder}`, className: "bg-riso-yellow text-riso-ink" },
+          {
+            key: "combo",
+            label: combo.count > 0 ? `×${combo.multiplier}` : "combo",
+            className: "bg-riso-cyan/90 text-riso-ink",
+          },
           { key: "miss", label: `miss ${jarMisses}`, className: "bg-riso-pink/90 text-background" },
         ]}
       />
 
+      <GameCatchLane topPercent={CATCHER_Y - 10} heightPercent={18} />
+
       {fireflies.map((f) => (
-        <button
+        <div
           key={f.id}
-          type="button"
-          onClick={() => catchFly(f.id, f.x, f.y)}
-          className="absolute z-20 flex items-center justify-center rounded-full bg-riso-yellow/20 border-2 border-riso-yellow/60 shadow-[0_0_20px_oklch(0.92_0.19_100/0.5)] active:scale-125 transition-transform"
-          style={{
-            left: `${f.x}%`,
-            top: `${f.y}%`,
-            width: 56,
-            height: 56,
-            transform: "translate(-50%, -50%)",
-          }}
-          aria-label="Catch firefly"
+          className="absolute z-20"
+          style={{ left: `${f.x}%`, top: `${f.y}%`, transform: "translate(-50%, -50%)" }}
         >
-          <span className="text-3xl animate-pulse">🪲</span>
-        </button>
+          {fireflySrc ? (
+            <EditionSprite
+              src={fireflySrc}
+              variant="target"
+              size={58}
+              onClick={() => catchFly(f.id, f.x, f.y)}
+              label="Catch firefly"
+            />
+          ) : (
+            <GameFlyTarget emoji="🪲" size={58} onClick={() => catchFly(f.id, f.x, f.y)} label="Catch firefly" />
+          )}
+        </div>
       ))}
 
       {rain.map((drop) => (
-        <span
+        <div
           key={drop.id}
-          className="absolute text-xl pointer-events-none opacity-50 z-[5]"
+          className="absolute pointer-events-none z-[5]"
           style={{ left: `${drop.x}%`, top: `${drop.y}%`, transform: "translate(-50%, -50%)" }}
         >
-          💧
-        </span>
+          {rainSrc ? (
+            <EditionSprite src={rainSrc} variant="obstacle" size={24} className="opacity-40" />
+          ) : (
+            <span className="text-xl opacity-40 drop-shadow-sm">💧</span>
+          )}
+        </div>
       ))}
 
-      <div className="absolute bottom-[10%] left-1/2 -translate-x-1/2 text-6xl z-10 pointer-events-none">
-        🫙
+      <div
+        className="absolute z-20 transition-[left] duration-75 ease-out"
+        style={{
+          left: `${catcherX}%`,
+          top: `${CATCHER_Y}%`,
+          transform: "translate(-50%, -50%)",
+        }}
+      >
+        <GameJarSprite size="lg" />
       </div>
-      <p className="absolute bottom-[4%] left-0 right-0 text-center font-mono text-[9px] uppercase tracking-widest text-white/50 z-10">
-        Tap the lights — rain is just atmosphere
+      <p className={["game-play-footer-hint", embed ? "" : "game-play-footer-hint--web"].join(" ")}>
+        Slide to catch · combo ×2 ×3
       </p>
     </div>
+    </EditionPlayShell>
   );
 }
